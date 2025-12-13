@@ -3,328 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vamsha Vruksha - Interactive Family Tree</title>
+  <title>Vamsha Vruksha</title>
   
-  <!-- 1. Load D3 and d3-org-chart from CDNs -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
-  
-  <!-- Font Awesome for Icons -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
-    /* 2. Glassmorphic & Global Styles */
-    :root {
-      --bg-gradient: radial-gradient(circle at 50% -20%, #2e1065 0%, #0f172a 100%);
-      --glass-bg: rgba(30, 41, 59, 0.7);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --text-color: #f1f5f9;
-      --accent: #818cf8;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg-gradient);
-      color: var(--text-color);
-      font-family: 'Inter', system-ui, sans-serif;
-      overflow: hidden; /* Chart handles scrolling */
-    }
-
-    #chart-container {
-      height: 100vh;
-      width: 100vw;
-      background-color: transparent;
-    }
-
-    /* Custom Toolbar for Search/Expand */
-    .toolbar {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 100;
-      display: flex;
-      gap: 10px;
-      background: var(--glass-bg);
-      padding: 10px;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-
-    input {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--glass-border);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
-      outline: none;
-    }
-
-    button {
-      background: rgba(129, 140, 248, 0.2);
-      border: 1px solid var(--glass-border);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    button:hover {
-      background: rgba(129, 140, 248, 0.4);
-    }
-
-    /* 3. Node Styling (The Glass Cards) */
+    body { background: #0f172a; color: white; margin: 0; font-family: sans-serif; }
+    #chart-container { height: 100vh; }
+    
     .node-card {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      border-radius: 12px;
-      color: white;
-      height: 100%;
-      width: 100%;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      width: 250px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
     }
-
-    .node-card:hover {
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(129, 140, 248, 0.3);
-    }
-
-    .gen-badge {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(255,255,255,0.1);
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #94a3b8;
-    }
-
-    .couple-wrapper {
+    
+    .couple-row {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 15px;
+      gap: 8px;
       width: 100%;
-      padding: 0 10px;
     }
-
-    .person {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    
+    .person-box {
       text-align: center;
+      flex: 1;
     }
-
-    .avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      margin-bottom: 8px;
-      border: 2px solid rgba(255,255,255,0.1);
+    
+    .name { font-weight: bold; font-size: 13px; color: #e2e8f0; }
+    .gen { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+    .icon { font-size: 18px; margin-bottom: 4px; display: block; }
+    
+    .m-icon { color: #60a5fa; }
+    .f-icon { color: #f472b6; }
+    
+    .heart { color: #f43f5e; font-size: 12px; margin-top: 5px; }
+    
+    .toolbar {
+      position: fixed; top: 10px; left: 10px; z-index: 999;
+      background: rgba(30, 41, 59, 0.9); padding: 8px; border-radius: 8px; border: 1px solid #475569;
+      display: flex; gap: 8px;
     }
-
-    .male .avatar { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #bfdbfe; }
-    .female .avatar { background: linear-gradient(135deg, #831843, #ec4899); color: #fbcfe8; }
-
-    .name { font-size: 14px; font-weight: 600; line-height: 1.2; max-width: 120px; }
-    .details { font-size: 10px; color: #94a3b8; margin-top: 2px; }
-
-    .spouse-divider {
-      color: #f472b6;
-      font-size: 16px;
-      opacity: 0.7;
-    }
+    input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; }
+    button { cursor: pointer; background: #3b82f6; border: none; color: white; padding: 5px 10px; border-radius: 4px; }
   </style>
 </head>
 <body>
 
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <input type="text" id="searchBox" placeholder="Search members..." oninput="filterChart(this.value)">
-    <button onclick="chart.expandAll()">Expand All</button>
-    <button onclick="chart.collapseAll()">Collapse All</button>
-    <button onclick="chart.fit()">Fit to Screen</button>
-    <button onclick="downloadPdf()">Download PDF</button>
-  </div>
+<div class="toolbar">
+  <input id="search" placeholder="Search..." oninput="search(this.value)">
+  <button onclick="chart.expandAll()">Expand All</button>
+  <button onclick="chart.fit()">Fit</button>
+  <button onclick="chart.exportImg()">Download Image</button>
+</div>
 
-  <!-- Chart Container -->
-  <div id="chart-container"></div>
+<div id="chart-container"></div>
 
-  <script>
-    let chart;
-    let rawData;
-
-    // 1. Fetch Data
-    fetch('family-tree.json')
-      .then(r => r.json())
-      .then(data => {
-        rawData = data.persons;
-        const processedData = processDataForChart(rawData);
-        renderChart(processedData);
+<script>
+  let chart;
+  
+  fetch('family-tree.json')
+    .then(r => r.json())
+    .then(data => {
+      const persons = data.persons;
+      const marriages = data.marriages || [];
+      
+      // 1. Build Spouse Map
+      const spouseMap = {};
+      marriages.forEach(m => {
+        spouseMap[m.person1Id] = m.person2Id;
+        spouseMap[m.person2Id] = m.person1Id;
       });
 
-    // 2. Process Data: Convert generic JSON to D3-Org-Chart friendly flat structure
-    // We need 'id', 'parentId'. Spouses will be merged visually in the node template.
-    function processDataForChart(persons) {
-      const list = Object.values(persons);
+      // 2. Prepare Nodes
+      // We only create chart nodes for "Lineage Members" (people with parents in the tree OR root).
+      // Spouses are strictly visual attachments.
       const nodes = [];
-
-      list.forEach(p => {
-        // Find the primary parent (usually the father in this patriarchal tree structure, or the first parent listed)
-        // If spouse exists, we will rendering them INSIDE this node, not as a separate node, 
-        // UNLESS the spouse also has their own parents listed in the tree (blood relative).
-        
-        let parentId = null;
-        if (p.parents && p.parents.length > 0) {
-          parentId = p.parents[0];
-        } else if (p.generation > 1) {
-          // If no parents listed but not Gen 1, it might be a spouse.
-          // In this specific chart logic, we treat the 'bloodline' member as the node holder.
-          // This specific tree is mostly patrilineal. Spouses are displayed inside the husband's node.
-        }
-
-        // Logic: Only create a node if this person is a "primary" lineage member OR if they are a root.
-        // We assume 'p' is a node. If 'p' has a spouse, we add the spouse data to 'p's node data 
-        // so they render together.
-        
-        // Check if I am someone's spouse. If I am, and I don't have parents in the tree, 
-        // I might just be metadata on my spouse's node.
-        // However, the cleanest way in D3-org-chart is to make everyone a node, 
-        // OR club them. Let's club them visually.
-        
-        // We will create nodes for everyone, but if they are married, we render the couple.
-        // To avoid duplicates, we typically render the "family unit".
-        
-        // SIMPLIFIED STRATEGY: 
-        // 1. Create a node for every person.
-        // 2. Link them to their parent.
-        // 3. Spouses: The library doesn't strictly support dual-roots easily without plugins.
-        // BETTER STRATEGY FOR THIS LIB:
-        // Use the person with 'parents' as the node anchor. 
-        // Add spouse details to that node object.
-        
-        // Let's filter: Who is a "primary" node? 
-        // Anyone who has parents in the tree OR is a root (Gen 1).
-        
-        const isPrimary = (p.parents && p.parents.length > 0) || p.id === 'giri-bhatta-1';
-        
-        if (isPrimary) {
-           let spouseData = null;
-           if (p.spouse && persons[p.spouse]) {
-             spouseData = persons[p.spouse];
-           }
-
-           nodes.push({
-             id: p.id,
-             parentId: parentId || '', // Root has empty string
-             name: p.name,
-             gender: p.gender,
-             generation: p.generation,
-             spouse: spouseData, // Attach spouse object to the node
-             _directData: p
-           });
+      const lineageIds = new Set();
+      
+      // Identify who is in the bloodline (has parents listed in data)
+      Object.values(persons).forEach(p => {
+        if((p.parents && p.parents.length) || p.id === 'giri-bhatta-1') {
+          lineageIds.add(p.id);
         }
       });
       
-      return nodes;
-    }
+      Object.values(persons).forEach(p => {
+        // Only render if they are a lineage member
+        if (!lineageIds.has(p.id)) return;
+        
+        let spouseId = spouseMap[p.id];
+        let spouseData = null;
+        if (spouseId && persons[spouseId]) {
+          spouseData = persons[spouseId];
+        }
 
-    // 3. Render Chart
-    function renderChart(data) {
+        nodes.push({
+          id: p.id,
+          parentId: (p.parents && p.parents.length) ? p.parents[0] : '',
+          name: p.name,
+          gender: p.gender,
+          generation: p.generation,
+          spouse: spouseData
+        });
+      });
+
+      // 3. Render
       chart = new d3.OrgChart()
         .container('#chart-container')
-        .data(data)
-        .nodeHeight(d => 100)
-        .nodeWidth(d => 280)
+        .data(nodes)
+        .nodeHeight(d => 85)
+        .nodeWidth(d => d.data.spouse ? 260 : 140)
         .childrenMargin(d => 50)
-        .compactMarginBetween(d => 35)
-        .compactMarginPair(d => 30)
-        .neightbourMargin((a, b) => 20)
-        .backgroundColor('transparent')
-        
-        // 4. Custom Node Content (The Glass Card)
-        .nodeContent(function (d, i, arr, state) {
+        .compactMarginBetween(d => 25)
+        .compactMarginPair(d => 15)
+        .backgroundColor('#0f172a')
+        .nodeContent(d => {
           const p = d.data;
-          const spouse = p.spouse;
+          const s = p.spouse;
           
-          // Generate Primary Person HTML
-          const primaryHtml = `
-            <div class="person ${p.gender === 'M' ? 'male' : 'female'}">
-              <div class="avatar"><i class="fa-solid ${p.gender === 'M' ? 'fa-user' : 'fa-user'}"></i></div>
-              <div class="name">${p.name}</div>
-              <div class="details">Gen ${p.generation}</div>
-            </div>
-          `;
-
-          // Generate Spouse HTML (if exists)
-          let spouseHtml = '';
-          if (spouse) {
-            spouseHtml = `
-              <div class="spouse-divider"><i class="fa-solid fa-heart"></i></div>
-              <div class="person ${spouse.gender === 'M' ? 'male' : 'female'}">
-                <div class="avatar"><i class="fa-solid ${spouse.gender === 'M' ? 'fa-user' : 'fa-user'}"></i></div>
-                <div class="name">${spouse.name}</div>
-                <div class="details">Spouse</div>
-              </div>
-            `;
+          const pIcon = p.gender === 'M' ? '<i class="fa-solid fa-user m-icon icon"></i>' : '<i class="fa-solid fa-user f-icon icon"></i>';
+          
+          let html = `<div class="node-card" style="width:${s ? '240px' : '120px'}">
+            <div class="couple-row">
+              <div class="person-box">
+                ${pIcon}
+                <div class="name">${p.name}</div>
+                <div class="gen">Gen ${p.generation}</div>
+              </div>`;
+              
+          if(s) {
+            const sIcon = s.gender === 'M' ? '<i class="fa-solid fa-user m-icon icon"></i>' : '<i class="fa-solid fa-user f-icon icon"></i>';
+            html += `<i class="fa-solid fa-heart heart"></i>
+              <div class="person-box">
+                ${sIcon}
+                <div class="name">${s.name}</div>
+                <div class="gen">Spouse</div>
+              </div>`;
           }
-
-          return `
-            <div class="node-card">
-              <div class="gen-badge">G${p.generation}</div>
-              <div class="couple-wrapper">
-                ${primaryHtml}
-                ${spouseHtml}
-              </div>
-            </div>
-          `;
+          
+          html += `</div></div>`;
+          return html;
         })
         .render();
         
-        chart.expandAll();
-    }
+      chart.expandAll();
+    });
 
-    // 5. Search Functionality
-    function filterChart(value) {
-      if(!value) {
-        chart.clearHighlighting();
-        return;
-      }
-      
-      // Highlight matching nodes
-      chart.clearHighlighting();
-      const data = chart.data();
-      const matches = data.filter(d => d.name.toLowerCase().includes(value.toLowerCase()));
-      
-      matches.forEach(d => {
-        chart.setHighlighted(d.id).render();
-      });
-      
-      // If one match, center it
-      if(matches.length === 1) {
-        chart.setUpToTheRootHighlighted(matches[0].id).render().fit();
-      }
-    }
-    
-    function downloadPdf() {
-      chart.exportImg({full:true})
-    }
-  </script>
+  function search(val) {
+    if(!val) { chart.clearHighlighting(); return; }
+    const data = chart.data();
+    const found = data.filter(d => d.name.toLowerCase().includes(val.toLowerCase()) || (d.spouse && d.spouse.name.toLowerCase().includes(val.toLowerCase())));
+    chart.clearHighlighting();
+    found.forEach(f => chart.setHighlighted(f.id).render());
+    if(found.length === 1) chart.setUpToTheRootHighlighted(found[0].id).render().fit();
+  }
+</script>
 </body>
 </html>
