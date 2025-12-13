@@ -3,7 +3,8 @@ let familyData = null;
 let root = null;
 let svg, g, zoom, tree;
 let fuse = null;
-let currentOrientation = window.innerWidth > 768 ? 'horizontal' : 'vertical';
+let currentOrientation = 'horizontal';
+let nodeIdCounter = 0;
 
 // Constants
 const NODE_WIDTH = 180;
@@ -11,41 +12,121 @@ const NODE_HEIGHT = 60;
 const NODE_SPACING_X = 220;
 const NODE_SPACING_Y = 100;
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', async () => {
+// Check if DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+
+// Main initialization function
+async function initApp() {
+    console.log('Initializing Family Tree Application...');
+    
     try {
+        // Verify required libraries
+        if (typeof d3 === 'undefined') {
+            throw new Error('D3.js library not loaded');
+        }
+        if (typeof Fuse === 'undefined') {
+            throw new Error('Fuse.js library not loaded');
+        }
+        
+        // Verify DOM elements exist
+        const requiredElements = [
+            'tree-container', 'family-tree', 'search-fab', 
+            'search-overlay', 'profile-modal', 'loading'
+        ];
+        
+        for (const id of requiredElements) {
+            if (!document.getElementById(id)) {
+                throw new Error(`Required element #${id} not found in DOM`);
+            }
+        }
+        
         await loadFamilyData();
         initializeTree();
         initializeSearch();
         initializeEventListeners();
         handleDeepLink();
         hideLoading();
+        
+        console.log('Application initialized successfully');
     } catch (error) {
         console.error('Error initializing app:', error);
-        alert('Failed to load family tree data. Please refresh the page.');
+        showError(error.message);
     }
-});
+}
+
+// Show error message
+function showError(message) {
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.innerHTML = `
+            <div style="text-align: center; color: white;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h2>Error Loading Family Tree</h2>
+                <p>${message}</p>
+                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: white; cursor: pointer;">
+                    Reload Page
+                </button>
+            </div>
+        `;
+    }
+}
 
 // Load family data from JSON
 async function loadFamilyData() {
-    const response = await fetch('family-tree.json');
-    familyData = await response.json();
-    
-    // Convert persons object to array for D3
-    const personsArray = Object.values(familyData.persons).map(person => ({
-        ...person,
-        _expanded: true, // Initially expand all nodes
-        _children: person.children || []
-    }));
-    
-    // Create hierarchy
-    root = d3.stratify()
-        .id(d => d.id)
-        .parentId(d => d.parents && d.parents[0] ? d.parents[0] : null)
-        (personsArray);
-    
-    root.x0 = 0;
-    root.y0 = 0;
+    try {
+        const response = await fetch('family-tree.json');
+        if (!response.ok) {
+            throw new Error(`Failed to load family-tree.json: ${response.status}`);
+        }
+        
+        familyData = await response.json();
+        console.log('Family data loaded:', familyData.metadata);
+        
+        // Convert persons object to array for D3
+        const personsArray = Object.values(familyData.persons).map(person => {
+            return {
+                id: person.id,
+                name: person.name,
+                generation: person.generation,
+                gender: person.gender,
+                birth: person.birth,
+                death: person.death,
+                biography: person.biography,
+                photo: person.photo,
+                maidenName: person.maidenName,
+                nickname: person.nickname,
+                parentId: (person.parents && person.parents[0]) ? person.parents[0] : null,
+                parents: person.parents || [],
+                children: person.children || [],
+                _expanded: true
+            };
+        });
+        
+        // Create hierarchy using stratify
+        root = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parentId)
+            (personsArray);
+        
+        // Initialize positions
+        root.x0 = 0;
+        root.y0 = 0;
+        
+        // Expand all initially
+        root.descendants().forEach(d => {
+            d._children = d.children;
+        });
+        
+        console.log('Tree hierarchy created with', root.descendants().length, 'nodes');
+        
+    } catch (error) {
+        console.error('Error loading family data:', error);
+        throw error;
+    }
 }
 
 // Initialize D3 tree
@@ -54,13 +135,21 @@ function initializeTree() {
     const width = container.clientWidth;
     const height = container.clientHeight;
     
+    console.log('Initializing tree with dimensions:', width, 'x', height);
+    
+    // Determine orientation based on screen size
+    currentOrientation = width > 768 ? 'horizontal' : 'vertical';
+    
     // Create SVG
     svg = d3.select('#family-tree')
         .attr('width', width)
         .attr('height', height);
     
+    // Clear any existing content
+    svg.selectAll('*').remove();
+    
     // Create main group for zoom/pan
-    g = svg.append('g');
+    g = svg.append('g').attr('class', 'tree-group');
     
     // Setup zoom behavior
     zoom = d3.zoom()
@@ -77,8 +166,8 @@ function initializeTree() {
     // Initial render
     update(root);
     
-    // Center on root
-    centerNode(root);
+    // Center on root after a short delay
+    setTimeout(() => centerNode(root), 100);
 }
 
 // Update tree layout based on orientation
@@ -90,11 +179,11 @@ function updateTreeLayout() {
     if (currentOrientation === 'horizontal') {
         tree = d3.tree()
             .size([height - 100, width - 300])
-            .nodeSize([NODE_SPACING_Y, NODE_SPACING_X]);
+            .separation((a, b) => a.parent === b.parent ? 1 : 1.5);
     } else {
         tree = d3.tree()
             .size([width - 100, height - 300])
-            .nodeSize([NODE_SPACING_X, NODE_SPACING_Y]);
+            .separation((a, b) => a.parent === b.parent ? 1 : 1.5);
     }
 }
 
@@ -107,7 +196,7 @@ function update(source) {
     const nodes = treeData.descendants();
     const links = treeData.links();
     
-    // Normalize for fixed-depth
+    // Normalize depth
     nodes.forEach(d => {
         if (currentOrientation === 'horizontal') {
             d.y = d.depth * NODE_SPACING_X;
@@ -118,19 +207,22 @@ function update(source) {
     
     // Update nodes
     const node = g.selectAll('g.node')
-        .data(nodes, d => d.id || (d.id = ++i));
+        .data(nodes, d => d.data.id);
     
     // Enter new nodes
     const nodeEnter = node.enter().append('g')
         .attr('class', 'node node-card')
         .attr('transform', d => {
             if (currentOrientation === 'horizontal') {
-                return `translate(${source.y0},${source.x0})`;
+                return `translate(${source.y0 || 0},${source.x0 || 0})`;
             } else {
-                return `translate(${source.x0},${source.y0})`;
+                return `translate(${source.x0 || 0},${source.y0 || 0})`;
             }
         })
-        .on('click', (event, d) => showProfile(d.data));
+        .on('click', (event, d) => {
+            event.stopPropagation();
+            showProfile(d.data);
+        });
     
     // Add node rectangle
     nodeEnter.append('rect')
@@ -139,57 +231,56 @@ function update(source) {
         .attr('height', NODE_HEIGHT)
         .attr('x', -NODE_WIDTH / 2)
         .attr('y', -NODE_HEIGHT / 2)
-        .attr('fill', d => d.data.gender === 'M' ? 
-            'var(--node-male)' : 'var(--node-female)')
+        .attr('fill', d => d.data.gender === 'M' ? 'var(--node-male)' : 'var(--node-female)')
         .attr('stroke', 'var(--node-border)');
     
     // Add name text
     nodeEnter.append('text')
         .attr('class', 'node-name')
-        .attr('dy', '-0.5em')
+        .attr('dy', '-0.3em')
         .attr('text-anchor', 'middle')
         .text(d => {
-            const name = d.data.name;
-            return name.length > 20 ? name.substring(0, 18) + '...' : name;
+            const name = d.data.name || 'Unknown';
+            return name.length > 22 ? name.substring(0, 20) + '...' : name;
         });
     
-    // Add generation/dates text
+    // Add dates/generation text
     nodeEnter.append('text')
         .attr('class', 'node-dates')
-        .attr('dy', '1em')
+        .attr('dy', '1.2em')
         .attr('text-anchor', 'middle')
         .text(d => {
             if (d.data.birth || d.data.death) {
                 return `${d.data.birth || '?'} - ${d.data.death || 'Present'}`;
             }
-            return `Generation ${d.data.generation}`;
+            return `Gen ${d.data.generation}`;
         });
     
     // Add expand/collapse indicator for nodes with children
-    nodeEnter.append('circle')
+    const hasChildren = nodeEnter.filter(d => d.data.children && d.data.children.length > 0);
+    
+    hasChildren.append('circle')
         .attr('class', 'expand-indicator')
-        .attr('r', 8)
-        .attr('cy', NODE_HEIGHT / 2 + 15)
-        .attr('fill', 'rgba(255, 255, 255, 0.8)')
+        .attr('r', 10)
+        .attr('cy', NODE_HEIGHT / 2 + 18)
+        .attr('fill', 'rgba(255, 255, 255, 0.9)')
         .attr('stroke', 'var(--accent-color)')
         .attr('stroke-width', 2)
-        .style('display', d => d.data._children.length > 0 ? 'block' : 'none')
-        .on('click', (event, d) => {
+        .on('click', function(event, d) {
             event.stopPropagation();
             toggleNode(d);
         });
     
-    nodeEnter.append('text')
+    hasChildren.append('text')
         .attr('class', 'expand-text')
-        .attr('cy', NODE_HEIGHT / 2 + 15)
+        .attr('y', NODE_HEIGHT / 2 + 18)
         .attr('dy', '0.35em')
         .attr('text-anchor', 'middle')
         .attr('fill', 'var(--accent-color)')
-        .attr('font-size', '10px')
+        .attr('font-size', '12px')
         .attr('font-weight', 'bold')
         .style('pointer-events', 'none')
-        .style('display', d => d.data._children.length > 0 ? 'block' : 'none')
-        .text(d => `+${d.data._children.length}`);
+        .text(d => `+${d.data.children.length}`);
     
     // Update existing nodes
     const nodeUpdate = nodeEnter.merge(node);
@@ -205,7 +296,7 @@ function update(source) {
         });
     
     // Remove exiting nodes
-    const nodeExit = node.exit().transition()
+    node.exit().transition()
         .duration(duration)
         .attr('transform', d => {
             if (currentOrientation === 'horizontal') {
@@ -218,20 +309,18 @@ function update(source) {
     
     // Update links
     const link = g.selectAll('path.link')
-        .data(links, d => d.target.id);
+        .data(links, d => d.target.data.id);
     
     // Enter new links
     const linkEnter = link.enter().insert('path', 'g')
         .attr('class', 'link')
         .attr('d', d => {
-            const o = {x: source.x0, y: source.y0};
+            const o = {x: source.x0 || 0, y: source.y0 || 0};
             return createStepPath(o, o);
         });
     
     // Update existing links
-    const linkUpdate = linkEnter.merge(link);
-    
-    linkUpdate.transition()
+    linkEnter.merge(link).transition()
         .duration(duration)
         .attr('d', d => createStepPath(d.source, d.target));
     
@@ -254,15 +343,11 @@ function update(source) {
 // Create step path for links
 function createStepPath(source, target) {
     if (currentOrientation === 'horizontal') {
-        return `M${source.y},${source.x}
-                H${(source.y + target.y) / 2}
-                V${target.x}
-                H${target.y}`;
+        const midY = (source.y + target.y) / 2;
+        return `M${source.y},${source.x} H${midY} V${target.x} H${target.y}`;
     } else {
-        return `M${source.x},${source.y}
-                V${(source.y + target.y) / 2}
-                H${target.x}
-                V${target.y}`;
+        const midY = (source.y + target.y) / 2;
+        return `M${source.x},${source.y} V${midY} H${target.x} V${target.y}`;
     }
 }
 
@@ -273,14 +358,13 @@ function toggleNode(d) {
         d.children = null;
     } else {
         d.children = d._children;
-        d._children = null;
     }
     update(d);
 }
 
 // Center view on a specific node
 function centerNode(d) {
-    const scale = 0.8;
+    const scale = 0.75;
     const container = document.getElementById('tree-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
@@ -306,15 +390,18 @@ function initializeSearch() {
     fuse = new Fuse(personsArray, {
         keys: ['name', 'maidenName', 'nickname'],
         threshold: 0.3,
-        includeScore: true
+        includeScore: true,
+        minMatchCharLength: 2
     });
+    
+    console.log('Search initialized with', personsArray.length, 'persons');
 }
 
-// Search and display results
+// Perform search and display results
 function performSearch(query) {
     const resultsContainer = document.getElementById('search-results');
     
-    if (!query || query.trim() === '') {
+    if (!query || query.trim().length < 2) {
         resultsContainer.innerHTML = '';
         return;
     }
@@ -322,14 +409,13 @@ function performSearch(query) {
     const results = fuse.search(query);
     
     if (results.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-results">No matching family members found.</div>';
+        resultsContainer.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><p>No matching family members found.</p></div>';
         return;
     }
     
-    resultsContainer.innerHTML = results.map(result => {
+    resultsContainer.innerHTML = results.slice(0, 50).map(result => {
         const person = result.item;
-        const father = person.parents && person.parents[0] ? 
-            familyData.persons[person.parents[0]] : null;
+        const father = person.parents && person.parents[0] ? familyData.persons[person.parents[0]] : null;
         
         return `
             <div class="search-result-item" data-id="${person.id}">
@@ -343,7 +429,7 @@ function performSearch(query) {
     }).join('');
     
     // Add click handlers
-    document.querySelectorAll('.search-result-item').forEach(item => {
+    resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
         item.addEventListener('click', () => {
             const id = item.getAttribute('data-id');
             searchAndZoom(id);
@@ -354,18 +440,22 @@ function performSearch(query) {
 // Teleport function - search and zoom to specific node
 function searchAndZoom(id) {
     // Close search overlay
-    document.getElementById('search-overlay').classList.add('hidden');
-    document.getElementById('search-input').value = '';
+    const searchOverlay = document.getElementById('search-overlay');
+    const searchInput = document.getElementById('search-input');
     
-    // Find the node
+    if (searchOverlay) searchOverlay.classList.add('hidden');
+    if (searchInput) searchInput.value = '';
+    
+    // Find the node in the tree
     const node = root.descendants().find(d => d.data.id === id);
     
     if (!node) {
         console.error('Node not found:', id);
+        alert('Person not found in tree');
         return;
     }
     
-    // Expand path to root
+    // Expand path from node to root
     let current = node;
     while (current.parent) {
         if (!current.parent.children) {
@@ -374,23 +464,26 @@ function searchAndZoom(id) {
         current = current.parent;
     }
     
-    // Update tree
+    // Update tree to show expanded path
     update(root);
     
-    // Center on node with animation
+    // Wait for update, then center and highlight
     setTimeout(() => {
         centerNode(node);
         
         // Add pulse highlight
-        const nodeElement = g.selectAll('g.node')
-            .filter(d => d.data.id === id)
-            .select('rect');
-        
-        nodeElement.classed('pulse-highlight', true);
-        
         setTimeout(() => {
-            nodeElement.classed('pulse-highlight', false);
-        }, 2000);
+            const nodeElement = g.selectAll('g.node')
+                .filter(d => d.data.id === id)
+                .select('rect');
+            
+            if (nodeElement.node()) {
+                nodeElement.classed('pulse-highlight', true);
+                setTimeout(() => {
+                    nodeElement.classed('pulse-highlight', false);
+                }, 2000);
+            }
+        }, 800);
     }, 100);
 }
 
@@ -403,74 +496,70 @@ function showProfile(person) {
     const bioEl = document.getElementById('profile-bio');
     const familyEl = document.getElementById('profile-family');
     
+    if (!modal) return;
+    
     // Set photo
     if (person.photo) {
         photoDiv.innerHTML = `<img src="${person.photo}" alt="${person.name}">`;
     } else {
-        photoDiv.innerHTML = `<i class="fas fa-user"></i>`;
+        const icon = person.gender === 'M' ? 'fa-male' : 'fa-female';
+        photoDiv.innerHTML = `<i class="fas ${icon}"></i>`;
     }
     
     // Set name and dates
-    nameEl.textContent = person.name;
-    const dates = [];
-    if (person.birth) dates.push(`Born: ${person.birth}`);
-    if (person.death) dates.push(`Died: ${person.death}`);
-    if (dates.length === 0) dates.push(`Generation ${person.generation}`);
-    datesEl.textContent = dates.join(' • ');
+    nameEl.textContent = person.name || 'Unknown';
+    
+    const dateInfo = [];
+    if (person.birth) dateInfo.push(`Born: ${person.birth}`);
+    if (person.death) dateInfo.push(`Died: ${person.death}`);
+    if (dateInfo.length === 0) dateInfo.push(`Generation ${person.generation}`);
+    datesEl.textContent = dateInfo.join(' • ');
     
     // Set biography
     if (person.biography) {
         bioEl.innerHTML = `<p>${person.biography}</p>`;
+        bioEl.style.display = 'block';
     } else {
-        bioEl.innerHTML = '<p style="opacity: 0.7;">No biography available.</p>';
+        bioEl.style.display = 'none';
     }
     
-    // Set family links
+    // Build family links HTML
     let familyHTML = '';
     
     // Parents
     if (person.parents && person.parents.length > 0) {
-        familyHTML += '<div class="family-section"><h3>Parents</h3><div class="family-links">';
-        person.parents.forEach(parentId => {
-            const parent = familyData.persons[parentId];
-            if (parent) {
-                familyHTML += `<span class="family-link" data-id="${parentId}">${parent.name}</span>`;
-            }
-        });
-        familyHTML += '</div></div>';
-    }
-    
-    // Spouse
-    const marriage = familyData.marriages.find(m => 
-        m.person1Id === person.id || m.person2Id === person.id
-    );
-    if (marriage) {
-        const spouseId = marriage.person1Id === person.id ? 
-            marriage.person2Id : marriage.person1Id;
-        const spouse = familyData.persons[spouseId];
-        if (spouse) {
-            familyHTML += '<div class="family-section"><h3>Spouse</h3><div class="family-links">';
-            familyHTML += `<span class="family-link" data-id="${spouseId}">${spouse.name}</span>`;
-            familyHTML += '</div></div>';
+        const parentLinks = person.parents
+            .map(parentId => {
+                const parent = familyData.persons[parentId];
+                return parent ? `<span class="family-link" data-id="${parentId}">${parent.name}</span>` : '';
+            })
+            .filter(html => html)
+            .join('');
+        
+        if (parentLinks) {
+            familyHTML += `<div class="family-section"><h3>Parents</h3><div class="family-links">${parentLinks}</div></div>`;
         }
     }
     
     // Children
     if (person.children && person.children.length > 0) {
-        familyHTML += '<div class="family-section"><h3>Children</h3><div class="family-links">';
-        person.children.forEach(childId => {
-            const child = familyData.persons[childId];
-            if (child) {
-                familyHTML += `<span class="family-link" data-id="${childId}">${child.name}</span>`;
-            }
-        });
-        familyHTML += '</div></div>';
+        const childLinks = person.children
+            .map(childId => {
+                const child = familyData.persons[childId];
+                return child ? `<span class="family-link" data-id="${childId}">${child.name}</span>` : '';
+            })
+            .filter(html => html)
+            .join('');
+        
+        if (childLinks) {
+            familyHTML += `<div class="family-section"><h3>Children (${person.children.length})</h3><div class="family-links">${childLinks}</div></div>`;
+        }
     }
     
-    familyEl.innerHTML = familyHTML || '<p style="opacity: 0.7;">No family connections recorded.</p>';
+    familyEl.innerHTML = familyHTML || '<p style="opacity: 0.7; text-align: center;">No family connections recorded.</p>';
     
     // Add click handlers to family links
-    document.querySelectorAll('.family-link').forEach(link => {
+    familyEl.querySelectorAll('.family-link').forEach(link => {
         link.addEventListener('click', () => {
             const id = link.getAttribute('data-id');
             modal.classList.add('hidden');
@@ -482,57 +571,92 @@ function showProfile(person) {
     modal.classList.remove('hidden');
 }
 
-// Initialize event listeners
+// Initialize all event listeners
 function initializeEventListeners() {
     // Search FAB
-    document.getElementById('search-fab').addEventListener('click', () => {
-        document.getElementById('search-overlay').classList.remove('hidden');
-        document.getElementById('search-input').focus();
-    });
+    const searchFab = document.getElementById('search-fab');
+    if (searchFab) {
+        searchFab.addEventListener('click', () => {
+            const overlay = document.getElementById('search-overlay');
+            const input = document.getElementById('search-input');
+            if (overlay) overlay.classList.remove('hidden');
+            if (input) {
+                setTimeout(() => input.focus(), 100);
+            }
+        });
+    }
     
     // Close search
-    document.getElementById('close-search').addEventListener('click', () => {
-        document.getElementById('search-overlay').classList.add('hidden');
-        document.getElementById('search-input').value = '';
-    });
+    const closeSearch = document.getElementById('close-search');
+    if (closeSearch) {
+        closeSearch.addEventListener('click', () => {
+            const overlay = document.getElementById('search-overlay');
+            const input = document.getElementById('search-input');
+            if (overlay) overlay.classList.add('hidden');
+            if (input) input.value = '';
+        });
+    }
     
     // Search input
-    document.getElementById('search-input').addEventListener('input', (e) => {
-        performSearch(e.target.value);
-    });
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+    }
     
     // Close modal
-    document.getElementById('close-modal').addEventListener('click', () => {
-        document.getElementById('profile-modal').classList.add('hidden');
-    });
+    const closeModal = document.getElementById('close-modal');
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            const modal = document.getElementById('profile-modal');
+            if (modal) modal.classList.add('hidden');
+        });
+    }
     
-    // Close overlay/modal on backdrop click
-    document.getElementById('search-overlay').addEventListener('click', (e) => {
-        if (e.target.id === 'search-overlay') {
-            document.getElementById('search-overlay').classList.add('hidden');
-        }
-    });
+    // Close on backdrop click
+    const searchOverlay = document.getElementById('search-overlay');
+    if (searchOverlay) {
+        searchOverlay.addEventListener('click', (e) => {
+            if (e.target === searchOverlay) {
+                searchOverlay.classList.add('hidden');
+            }
+        });
+    }
     
-    document.getElementById('profile-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'profile-modal') {
-            document.getElementById('profile-modal').classList.add('hidden');
-        }
-    });
+    const profileModal = document.getElementById('profile-modal');
+    if (profileModal) {
+        profileModal.addEventListener('click', (e) => {
+            if (e.target === profileModal) {
+                profileModal.classList.add('hidden');
+            }
+        });
+    }
     
     // Zoom controls
-    document.getElementById('zoom-in').addEventListener('click', () => {
-        svg.transition().call(zoom.scaleBy, 1.3);
-    });
+    const zoomIn = document.getElementById('zoom-in');
+    const zoomOut = document.getElementById('zoom-out');
+    const zoomReset = document.getElementById('zoom-reset');
     
-    document.getElementById('zoom-out').addEventListener('click', () => {
-        svg.transition().call(zoom.scaleBy, 0.7);
-    });
+    if (zoomIn) {
+        zoomIn.addEventListener('click', () => {
+            svg.transition().duration(300).call(zoom.scaleBy, 1.3);
+        });
+    }
     
-    document.getElementById('zoom-reset').addEventListener('click', () => {
-        centerNode(root);
-    });
+    if (zoomOut) {
+        zoomOut.addEventListener('click', () => {
+            svg.transition().duration(300).call(zoom.scaleBy, 0.7);
+        });
+    }
     
-    // Handle window resize
+    if (zoomReset) {
+        zoomReset.addEventListener('click', () => {
+            centerNode(root);
+        });
+    }
+    
+    // Handle window resize with debounce
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
@@ -540,39 +664,54 @@ function initializeEventListeners() {
             const newOrientation = window.innerWidth > 768 ? 'horizontal' : 'vertical';
             if (newOrientation !== currentOrientation) {
                 currentOrientation = newOrientation;
+                const container = document.getElementById('tree-container');
+                svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
                 updateTreeLayout();
                 update(root);
                 centerNode(root);
             }
-        }, 250);
+        }, 300);
     });
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            document.getElementById('search-overlay').classList.add('hidden');
-            document.getElementById('profile-modal').classList.add('hidden');
+            const overlay = document.getElementById('search-overlay');
+            const modal = document.getElementById('profile-modal');
+            if (overlay && !overlay.classList.contains('hidden')) {
+                overlay.classList.add('hidden');
+            }
+            if (modal && !modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
         }
-        if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
+        
+        if ((e.key === '/' || (e.ctrlKey && e.key === 'f')) && e.target.tagName !== 'INPUT') {
             e.preventDefault();
-            document.getElementById('search-fab').click();
+            const fab = document.getElementById('search-fab');
+            if (fab) fab.click();
         }
     });
+    
+    console.log('Event listeners initialized');
 }
 
-// Handle deep linking
+// Handle deep linking via URL hash
 function handleDeepLink() {
     const hash = window.location.hash;
     if (hash && hash.startsWith('#id=')) {
         const id = hash.substring(4);
-        setTimeout(() => searchAndZoom(id), 1000);
+        console.log('Deep link detected:', id);
+        setTimeout(() => searchAndZoom(id), 1500);
     }
 }
 
 // Hide loading indicator
 function hideLoading() {
-    document.getElementById('loading').classList.add('hidden');
+    const loading = document.getElementById('loading');
+    if (loading) {
+        setTimeout(() => {
+            loading.classList.add('hidden');
+        }, 500);
+    }
 }
-
-// Counter for unique IDs
-let i = 0;
