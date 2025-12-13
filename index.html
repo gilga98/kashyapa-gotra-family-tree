@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://d3js.org https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self';">
     <title>Vamsha Vruksha - Family Tree</title>
     <link rel="stylesheet" href="style.css">
     <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
 </head>
 <body>
     <!-- Header -->
@@ -21,20 +22,20 @@
         
         <!-- Zoom Controls -->
         <div class="zoom-controls glass-panel">
-            <button id="zoom-in" class="control-btn" title="Zoom In">
+            <button id="zoom-in" class="control-btn" title="Zoom In" type="button">
                 <i class="fas fa-plus"></i>
             </button>
-            <button id="zoom-reset" class="control-btn" title="Reset View">
+            <button id="zoom-reset" class="control-btn" title="Reset View" type="button">
                 <i class="fas fa-home"></i>
             </button>
-            <button id="zoom-out" class="control-btn" title="Zoom Out">
+            <button id="zoom-out" class="control-btn" title="Zoom Out" type="button">
                 <i class="fas fa-minus"></i>
             </button>
         </div>
     </div>
 
     <!-- Floating Action Button (Search Trigger) -->
-    <button id="search-fab" class="fab glass-panel" title="Search Family Members">
+    <button id="search-fab" class="fab glass-panel" title="Search Family Members" type="button">
         <i class="fas fa-search"></i>
     </button>
 
@@ -42,8 +43,8 @@
     <div id="search-overlay" class="search-overlay hidden">
         <div class="search-container glass-panel">
             <div class="search-header">
-                <input type="text" id="search-input" placeholder="Search by name, nickname..." autofocus>
-                <button id="close-search" class="close-btn">
+                <input type="text" id="search-input" placeholder="Search by name, nickname..." autocomplete="off">
+                <button id="close-search" class="close-btn" type="button">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -54,7 +55,7 @@
     <!-- Profile Modal (Initially Hidden) -->
     <div id="profile-modal" class="modal hidden">
         <div class="modal-content glass-panel">
-            <button id="close-modal" class="modal-close">
+            <button id="close-modal" class="modal-close" type="button">
                 <i class="fas fa-times"></i>
             </button>
             <div class="modal-header">
@@ -77,9 +78,9 @@
         <p>Loading Family Tree...</p>
     </div>
 
-    <!-- CDN Scripts -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <!-- CDN Scripts - Load in correct order -->
+    <script src="https://d3js.org/d3.v7.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2" crossorigin="anonymous"></script>
     <script src="script.js"></script>
 </body>
 </html>
