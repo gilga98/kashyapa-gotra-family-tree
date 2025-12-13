@@ -1,0 +1,1741 @@
+{
+  "metadata": {
+    "name": "Vamsha Vruksha",
+    "gothra": "Kashyapa Gothra",
+    "lastUpdated": "2024-12-22",
+    "rootAncestor": "Giri Bhatta",
+    "totalMembers": 172
+  },
+  "persons": {
+    "giri-bhatta-1": {
+      "id": "giri-bhatta-1",
+      "name": "Giri Bhatta",
+      "generation": 1,
+      "gender": "M",
+      "children": [
+        "chowdam-bhatta",
+        "narsi-bhatta",
+        "devar-bhatta"
+      ]
+    },
+    "chowdam-bhatta": {
+      "id": "chowdam-bhatta",
+      "name": "Chowdam Bhatta",
+      "generation": 2,
+      "gender": "M",
+      "parents": [
+        "giri-bhatta-1"
+      ],
+      "children": [
+        "rama-bhatta",
+        "yenka-bhatta"
+      ]
+    },
+    "narsi-bhatta": {
+      "id": "narsi-bhatta",
+      "name": "Narsi Bhatta",
+      "generation": 2,
+      "gender": "M",
+      "parents": [
+        "giri-bhatta-1"
+      ],
+      "children": [
+        "hiriyenna-bhatta",
+        "narayana-bhatta"
+      ]
+    },
+    "devar-bhatta": {
+      "id": "devar-bhatta",
+      "name": "Devar Bhatta",
+      "generation": 2,
+      "gender": "M",
+      "parents": [
+        "giri-bhatta-1"
+      ],
+      "children": [
+        "krishnam-bhatta"
+      ]
+    },
+    "rama-bhatta": {
+      "id": "rama-bhatta",
+      "name": "Rama Bhatta",
+      "generation": 3,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta"
+      ],
+      "children": [
+        "chowdam-bhatta-thammanna"
+      ]
+    },
+    "yenka-bhatta": {
+      "id": "yenka-bhatta",
+      "name": "Yenka Bhatta",
+      "generation": 3,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta"
+      ],
+      "children": [
+        "narasimha-bhatta",
+        "lakshmi-narasimha-bhatta"
+      ]
+    },
+    "hiriyenna-bhatta": {
+      "id": "hiriyenna-bhatta",
+      "name": "Hiriyenna Bhatta",
+      "generation": 3,
+      "gender": "M",
+      "parents": [
+        "narsi-bhatta"
+      ]
+    },
+    "narayana-bhatta": {
+      "id": "narayana-bhatta",
+      "name": "Narayana Bhatta",
+      "generation": 3,
+      "gender": "M",
+      "parents": [
+        "narsi-bhatta"
+      ]
+    },
+    "krishnam-bhatta": {
+      "id": "krishnam-bhatta",
+      "name": "Krishnam Bhatta",
+      "generation": 3,
+      "gender": "M",
+      "parents": [
+        "devar-bhatta"
+      ],
+      "children": [
+        "keshava-bhatta",
+        "gopala-bhatta"
+      ]
+    },
+    "chowdam-bhatta-thammanna": {
+      "id": "chowdam-bhatta-thammanna",
+      "name": "Chowdam Bhatta (Thammanna Bhatta)",
+      "generation": 4,
+      "gender": "M",
+      "parents": [
+        "rama-bhatta"
+      ],
+      "spouse": "putta-gowramma",
+      "children": [
+        "kapinipathi-bhatta",
+        "ashwath-bhatta",
+        "narasimha-bhatta-4",
+        "joisam-bhatta",
+        "nanjunda-bhatta"
+      ]
+    },
+    "putta-gowramma": {
+      "id": "putta-gowramma",
+      "name": "Putta Gowramma",
+      "generation": 4,
+      "gender": "F",
+      "spouse": "chowdam-bhatta-thammanna"
+    },
+    "narasimha-bhatta": {
+      "id": "narasimha-bhatta",
+      "name": "Narasimha Bhatta",
+      "generation": 4,
+      "gender": "M",
+      "parents": [
+        "yenka-bhatta"
+      ],
+      "children": [
+        "thamma-bhatta",
+        "subba-bhatta"
+      ]
+    },
+    "lakshmi-narasimha-bhatta": {
+      "id": "lakshmi-narasimha-bhatta",
+      "name": "Lakshmi Narasimha Bhatta",
+      "generation": 4,
+      "gender": "M",
+      "parents": [
+        "yenka-bhatta"
+      ]
+    },
+    "keshava-bhatta": {
+      "id": "keshava-bhatta",
+      "name": "Keshava Bhatta",
+      "generation": 4,
+      "gender": "M",
+      "parents": [
+        "krishnam-bhatta"
+      ]
+    },
+    "gopala-bhatta": {
+      "id": "gopala-bhatta",
+      "name": "Gopala Bhatta",
+      "generation": 4,
+      "gender": "M",
+      "parents": [
+        "krishnam-bhatta"
+      ]
+    },
+    "kapinipathi-bhatta": {
+      "id": "kapinipathi-bhatta",
+      "name": "Kapinipathi Bhatta",
+      "generation": 5,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta-thammanna"
+      ],
+      "spouse": "honnamma",
+      "children": [
+        "puttanna-bhatta",
+        "rama-bhatta-5",
+        "narasimha-murthy-5"
+      ]
+    },
+    "honnamma": {
+      "id": "honnamma",
+      "name": "Honnamma",
+      "generation": 5,
+      "gender": "F",
+      "spouse": "kapinipathi-bhatta"
+    },
+    "ashwath-bhatta": {
+      "id": "ashwath-bhatta",
+      "name": "Ashwath Bhatta",
+      "generation": 5,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta-thammanna"
+      ],
+      "spouse": "narasamma",
+      "children": [
+        "putta-narasimha-bhatta",
+        "narayana-bhatta-5"
+      ]
+    },
+    "narasamma": {
+      "id": "narasamma",
+      "name": "Narasamma",
+      "generation": 5,
+      "gender": "F",
+      "spouse": "ashwath-bhatta"
+    },
+    "narasimha-bhatta-4": {
+      "id": "narasimha-bhatta-4",
+      "name": "Narasimha Bhatta",
+      "generation": 5,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta-thammanna"
+      ],
+      "spouse": "narasamma-2",
+      "children": [
+        "ranga-swamy-6",
+        "narayana-mami"
+      ]
+    },
+    "narasamma-2": {
+      "id": "narasamma-2",
+      "name": "Narasamma",
+      "generation": 5,
+      "gender": "F",
+      "spouse": "narasimha-bhatta-4"
+    },
+    "joisam-bhatta": {
+      "id": "joisam-bhatta",
+      "name": "Joisam Bhatta",
+      "generation": 5,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta-thammanna"
+      ],
+      "spouse": "venkamma",
+      "children": [
+        "nanjundaiah-6"
+      ]
+    },
+    "venkamma": {
+      "id": "venkamma",
+      "name": "Venkamma",
+      "generation": 5,
+      "gender": "F",
+      "spouse": "joisam-bhatta"
+    },
+    "nanjunda-bhatta": {
+      "id": "nanjunda-bhatta",
+      "name": "Nanjunda Bhatta",
+      "generation": 5,
+      "gender": "M",
+      "parents": [
+        "chowdam-bhatta-thammanna"
+      ],
+      "spouse": "narasamma-3",
+      "children": [
+        "ramachandraiah",
+        "shamanna",
+        "ashwathanarayanaiah"
+      ]
+    },
+    "narasamma-3": {
+      "id": "narasamma-3",
+      "name": "Narasamma",
+      "generation": 5,
+      "gender": "F",
+      "spouse": "nanjunda-bhatta"
+    },
+    "thamma-bhatta": {
+      "id": "thamma-bhatta",
+      "name": "Thamma Bhatta (Nanjundaiah)",
+      "generation": 5,
+      "gender": "M",
+      "parents": [
+        "narasimha-bhatta"
+      ],
+      "spouse": "lakshmidevamma",
+      "children": [
+        "ranga-narasimha",
+        "nanjundaiah",
+        "rama-rao",
+        "raghu",
+        "ramesh"
+      ]
+    },
+    "lakshmidevamma": {
+      "id": "lakshmidevamma",
+      "name": "Lakshmidevamma",
+      "generation": 5,
+      "gender": "F",
+      "spouse": "thamma-bhatta"
+    },
+    "puttanna-bhatta": {
+      "id": "puttanna-bhatta",
+      "name": "Puttanna Bhatta",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "kapinipathi-bhatta"
+      ],
+      "spouse": "shankaramma",
+      "children": [
+        "krishna-murthy-7"
+      ]
+    },
+    "shankaramma-6": {
+      "id": "shankaramma-6",
+      "name": "Shankaramma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "puttanna-bhatta"
+    },
+    "rama-bhatta-5": {
+      "id": "rama-bhatta-5",
+      "name": "Rama Bhatta",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "kapinipathi-bhatta"
+      ],
+      "spouse": "venkatalakshamma",
+      "children": [
+        "narasimha-murthy-7"
+      ]
+    },
+    "venkatalakshamma": {
+      "id": "venkatalakshamma",
+      "name": "Venkatalakshamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "rama-bhatta-5"
+    },
+    "narasimha-murthy-5": {
+      "id": "narasimha-murthy-5",
+      "name": "Narasimha Murthy",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "kapinipathi-bhatta"
+      ],
+      "spouse": "sharadamma-6",
+      "children": [
+        "narayana-7"
+      ]
+    },
+    "sharadamma-6": {
+      "id": "sharadamma-6",
+      "name": "Sharadamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "narasimha-murthy-5"
+    },
+    "putta-narasimha-bhatta": {
+      "id": "putta-narasimha-bhatta",
+      "name": "Putta Narasimha Bhatta",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "ashwath-bhatta"
+      ],
+      "spouse": "nanjamma-6",
+      "children": [
+        "gundappa"
+      ]
+    },
+    "nanjamma-6": {
+      "id": "nanjamma-6",
+      "name": "Nanjamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "putta-narasimha-bhatta"
+    },
+    "narayana-bhatta-5": {
+      "id": "narayana-bhatta-5",
+      "name": "Narayana Bhatta",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "ashwath-bhatta"
+      ],
+      "spouse": "parvathamma",
+      "children": [
+        "ananda-murthy"
+      ]
+    },
+    "parvathamma": {
+      "id": "parvathamma",
+      "name": "Parvathamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "narayana-bhatta-5"
+    },
+    "ranga-swamy-6": {
+      "id": "ranga-swamy-6",
+      "name": "Ranga Swamy",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "narasimha-bhatta-4"
+      ],
+      "spouse": "sarojamma",
+      "children": [
+        "rama-swamy"
+      ]
+    },
+    "sarojamma": {
+      "id": "sarojamma",
+      "name": "Sarojamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "ranga-swamy-6"
+    },
+    "narayana-mami": {
+      "id": "narayana-mami",
+      "name": "Narayana (Mami)",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "narasimha-bhatta-4"
+      ],
+      "spouse": "saroja",
+      "children": [
+        "ranga-swamy-7"
+      ]
+    },
+    "saroja": {
+      "id": "saroja",
+      "name": "Saroja",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "narayana-mami"
+    },
+    "nanjundaiah-6": {
+      "id": "nanjundaiah-6",
+      "name": "Nanjundaiah",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "joisam-bhatta"
+      ],
+      "spouse": "seethamma",
+      "children": [
+        "ramaiah-7"
+      ]
+    },
+    "seethamma": {
+      "id": "seethamma",
+      "name": "Seethamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "nanjundaiah-6"
+    },
+    "ramachandraiah": {
+      "id": "ramachandraiah",
+      "name": "Ramachandraiah",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "nanjunda-bhatta"
+      ],
+      "spouse": "venkata-subbamma",
+      "children": [
+        "seetharamaiah-7"
+      ]
+    },
+    "venkata-subbamma": {
+      "id": "venkata-subbamma",
+      "name": "Venkata Subbamma (Gundamma)",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "ramachandraiah"
+    },
+    "shamanna": {
+      "id": "shamanna",
+      "name": "Shamanna",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "nanjunda-bhatta"
+      ],
+      "spouse": "lalithamma-6",
+      "children": [
+        "lakshminarayana-mami"
+      ]
+    },
+    "lalithamma-6": {
+      "id": "lalithamma-6",
+      "name": "Lalithamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "shamanna"
+    },
+    "ashwathanarayanaiah": {
+      "id": "ashwathanarayanaiah",
+      "name": "Ashwathanarayanaiah",
+      "generation": 6,
+      "gender": "M",
+      "parents": [
+        "nanjunda-bhatta"
+      ],
+      "spouse": "venkatanarasamma",
+      "children": [
+        "narayana-7b",
+        "narasimhaiah-7",
+        "ashwath-narayana-7",
+        "narayana-7c"
+      ]
+    },
+    "venkatanarasamma": {
+      "id": "venkatanarasamma",
+      "name": "Venkatanarasamma",
+      "generation": 6,
+      "gender": "F",
+      "spouse": "ashwathanarayanaiah"
+    },
+    "krishna-murthy-7": {
+      "id": "krishna-murthy-7",
+      "name": "Krishna Murthy",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "puttanna-bhatta"
+      ],
+      "spouse": "padma",
+      "children": [
+        "narasimha-murthy-8"
+      ]
+    },
+    "padma": {
+      "id": "padma",
+      "name": "Padma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "krishna-murthy-7"
+    },
+    "narasimha-murthy-7": {
+      "id": "narasimha-murthy-7",
+      "name": "Narasimha Murthy",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "rama-bhatta-5"
+      ],
+      "spouse": "sharadamma-7",
+      "children": [
+        "narayana-8"
+      ]
+    },
+    "sharadamma-7": {
+      "id": "sharadamma-7",
+      "name": "Sharadamma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "narasimha-murthy-7"
+    },
+    "narayana-7": {
+      "id": "narayana-7",
+      "name": "Narayana",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "narasimha-murthy-5"
+      ],
+      "spouse": "gayithri",
+      "children": [
+        "jagadish"
+      ]
+    },
+    "gayithri": {
+      "id": "gayithri",
+      "name": "Gayithri",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "narayana-7"
+    },
+    "gundappa": {
+      "id": "gundappa",
+      "name": "Gundappa",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "putta-narasimha-bhatta"
+      ],
+      "spouse": "dakshayini",
+      "children": [
+        "narayana-swamy"
+      ]
+    },
+    "dakshayini": {
+      "id": "dakshayini",
+      "name": "Dakshayini",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "gundappa"
+    },
+    "ananda-murthy": {
+      "id": "ananda-murthy",
+      "name": "Ananda Murthy",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "narayana-bhatta-5"
+      ],
+      "spouse": "dakshayini-2",
+      "children": [
+        "krishna-simha"
+      ]
+    },
+    "dakshayini-2": {
+      "id": "dakshayini-2",
+      "name": "Dakshayini",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "ananda-murthy"
+    },
+    "rama-swamy": {
+      "id": "rama-swamy",
+      "name": "Rama Swamy",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "ranga-swamy-6"
+      ],
+      "spouse": "saroja-7",
+      "children": [
+        "ramashesha"
+      ]
+    },
+    "saroja-7": {
+      "id": "saroja-7",
+      "name": "Saroja",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "rama-swamy"
+    },
+    "ranga-swamy-7": {
+      "id": "ranga-swamy-7",
+      "name": "Ranga Swamy",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "narayana-mami"
+      ],
+      "spouse": "vijaya-lakshmi",
+      "children": [
+        "naganna"
+      ]
+    },
+    "vijaya-lakshmi": {
+      "id": "vijaya-lakshmi",
+      "name": "Vijaya Lakshmi",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "ranga-swamy-7"
+    },
+    "ramaiah-7": {
+      "id": "ramaiah-7",
+      "name": "Ramaiah",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "nanjundaiah-6"
+      ],
+      "spouse": "vasanthamma",
+      "children": [
+        "krishna-murthy-8b"
+      ]
+    },
+    "vasanthamma": {
+      "id": "vasanthamma",
+      "name": "Vasanthamma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "ramaiah-7"
+    },
+    "seetharamaiah-7": {
+      "id": "seetharamaiah-7",
+      "name": "Seetharamaiah",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "ramachandraiah"
+      ],
+      "spouse": "padmavathamma",
+      "children": [
+        "suresh"
+      ]
+    },
+    "padmavathamma": {
+      "id": "padmavathamma",
+      "name": "Padmavathamma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "seetharamaiah-7"
+    },
+    "lakshminarayana-mami": {
+      "id": "lakshminarayana-mami",
+      "name": "Lakshminarayana (Mami)",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "shamanna"
+      ],
+      "spouse": "lalithamma-7",
+      "children": [
+        "ramesh-8"
+      ]
+    },
+    "lalithamma-7": {
+      "id": "lalithamma-7",
+      "name": "Lalithamma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "lakshminarayana-mami"
+    },
+    "narayana-7b": {
+      "id": "narayana-7b",
+      "name": "Narayana",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "ashwathanarayanaiah"
+      ],
+      "spouse": "subhadra",
+      "children": [
+        "prakash"
+      ]
+    },
+    "subhadra": {
+      "id": "subhadra",
+      "name": "Subhadra",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "narayana-7b"
+    },
+    "narasimhaiah-7": {
+      "id": "narasimhaiah-7",
+      "name": "Narasimhaiah",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "ashwathanarayanaiah"
+      ],
+      "spouse": "lakshmidevamma-7",
+      "children": [
+        "harish-kumar"
+      ]
+    },
+    "lakshmidevamma-7": {
+      "id": "lakshmidevamma-7",
+      "name": "Lakshmidevamma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "narasimhaiah-7"
+    },
+    "ashwath-narayana-7": {
+      "id": "ashwath-narayana-7",
+      "name": "Ashwath Narayana",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "ashwathanarayanaiah"
+      ],
+      "spouse": "singaramma",
+      "children": [
+        "narayana-murthy"
+      ]
+    },
+    "singaramma": {
+      "id": "singaramma",
+      "name": "Singaramma",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "ashwath-narayana-7"
+    },
+    "narayana-7c": {
+      "id": "narayana-7c",
+      "name": "Narayana",
+      "generation": 7,
+      "gender": "M",
+      "parents": [
+        "ashwathanarayanaiah"
+      ],
+      "spouse": "shashiprabha",
+      "children": [
+        "krishna-murthy-8c",
+        "sathya-narayana",
+        "narasimha-murthy-8c"
+      ]
+    },
+    "shashiprabha": {
+      "id": "shashiprabha",
+      "name": "Shashiprabha",
+      "generation": 7,
+      "gender": "F",
+      "spouse": "narayana-7c"
+    },
+    "narasimha-murthy-8": {
+      "id": "narasimha-murthy-8",
+      "name": "Narasimha Murthy",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "krishna-murthy-7"
+      ],
+      "spouse": "nagarathna",
+      "children": [
+        "ashwatha-narayana-9"
+      ]
+    },
+    "nagarathna": {
+      "id": "nagarathna",
+      "name": "Nagarathna",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "narasimha-murthy-8"
+    },
+    "narayana-8": {
+      "id": "narayana-8",
+      "name": "Narayana",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narasimha-murthy-7"
+      ],
+      "spouse": "gayithri-8",
+      "children": [
+        "pradeep"
+      ]
+    },
+    "gayithri-8": {
+      "id": "gayithri-8",
+      "name": "Gayithri",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "narayana-8"
+    },
+    "jagadish": {
+      "id": "jagadish",
+      "name": "Jagadish",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narayana-7"
+      ],
+      "spouse": "vijaya-lakshmi-8",
+      "children": [
+        "prasad"
+      ]
+    },
+    "vijaya-lakshmi-8": {
+      "id": "vijaya-lakshmi-8",
+      "name": "Vijaya Lakshmi",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "jagadish"
+    },
+    "narayana-swamy": {
+      "id": "narayana-swamy",
+      "name": "Narayana Swamy",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "gundappa"
+      ],
+      "spouse": "gayithri-8b",
+      "children": [
+        "sowmithreya-simha"
+      ]
+    },
+    "gayithri-8b": {
+      "id": "gayithri-8b",
+      "name": "Gayithri",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "narayana-swamy"
+    },
+    "krishna-simha": {
+      "id": "krishna-simha",
+      "name": "Krishna Simha",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "ananda-murthy"
+      ],
+      "spouse": "geetha",
+      "children": [
+        "navaneeth"
+      ]
+    },
+    "geetha": {
+      "id": "geetha",
+      "name": "Geetha",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "krishna-simha"
+    },
+    "ramashesha": {
+      "id": "ramashesha",
+      "name": "Ramashesha",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "rama-swamy"
+      ],
+      "spouse": "sandhya",
+      "children": [
+        "guruprasad"
+      ]
+    },
+    "sandhya": {
+      "id": "sandhya",
+      "name": "Sandhya",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "ramashesha"
+    },
+    "naganna": {
+      "id": "naganna",
+      "name": "Naganna",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "ranga-swamy-7"
+      ],
+      "spouse": "chaya",
+      "children": [
+        "krishna-kumar"
+      ]
+    },
+    "chaya": {
+      "id": "chaya",
+      "name": "Chaya",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "naganna"
+    },
+    "krishna-murthy-8b": {
+      "id": "krishna-murthy-8b",
+      "name": "Krishna Murthy",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "ramaiah-7"
+      ],
+      "spouse": "rama",
+      "children": [
+        "ln-prasad"
+      ]
+    },
+    "rama": {
+      "id": "rama",
+      "name": "Rama",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "krishna-murthy-8b"
+    },
+    "suresh": {
+      "id": "suresh",
+      "name": "Suresh",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "seetharamaiah-7"
+      ],
+      "spouse": "veena",
+      "children": [
+        "natesh"
+      ]
+    },
+    "veena": {
+      "id": "veena",
+      "name": "Veena",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "suresh"
+    },
+    "ramesh-8": {
+      "id": "ramesh-8",
+      "name": "Ramesh",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "lakshminarayana-mami"
+      ],
+      "spouse": "geetha-8",
+      "children": [
+        "ramesh-9"
+      ]
+    },
+    "geetha-8": {
+      "id": "geetha-8",
+      "name": "Geetha",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "ramesh-8"
+    },
+    "prakash": {
+      "id": "prakash",
+      "name": "Prakash",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narayana-7b"
+      ],
+      "spouse": "vijaya-lakshmi-8c",
+      "children": [
+        "thejas"
+      ]
+    },
+    "vijaya-lakshmi-8c": {
+      "id": "vijaya-lakshmi-8c",
+      "name": "Vijaya Lakshmi",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "prakash"
+    },
+    "harish-kumar": {
+      "id": "harish-kumar",
+      "name": "Harish Kumar",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narasimhaiah-7"
+      ],
+      "spouse": "veena-8",
+      "children": [
+        "amith"
+      ]
+    },
+    "veena-8": {
+      "id": "veena-8",
+      "name": "Veena",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "harish-kumar"
+    },
+    "narayana-murthy": {
+      "id": "narayana-murthy",
+      "name": "Narayana Murthy",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "ashwath-narayana-7"
+      ],
+      "spouse": "ramamani",
+      "children": [
+        "santhrupth"
+      ]
+    },
+    "ramamani": {
+      "id": "ramamani",
+      "name": "Ramamani",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "narayana-murthy"
+    },
+    "krishna-murthy-8c": {
+      "id": "krishna-murthy-8c",
+      "name": "Krishna Murthy",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narayana-7c"
+      ],
+      "spouse": "mangala",
+      "children": [
+        "karthikeya",
+        "suhas"
+      ]
+    },
+    "mangala": {
+      "id": "mangala",
+      "name": "Mangala",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "krishna-murthy-8c"
+    },
+    "sathya-narayana": {
+      "id": "sathya-narayana",
+      "name": "Sathya Narayana",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narayana-7c"
+      ],
+      "spouse": "rajashree",
+      "children": [
+        "shyam-kumar"
+      ]
+    },
+    "rajashree": {
+      "id": "rajashree",
+      "name": "Rajashree",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "sathya-narayana"
+    },
+    "narasimha-murthy-8c": {
+      "id": "narasimha-murthy-8c",
+      "name": "Narasimha Murthy",
+      "generation": 8,
+      "gender": "M",
+      "parents": [
+        "narayana-7c"
+      ],
+      "spouse": "narasamma-8",
+      "children": [
+        "raghavendra"
+      ]
+    },
+    "narasamma-8": {
+      "id": "narasamma-8",
+      "name": "Narasamma",
+      "generation": 8,
+      "gender": "F",
+      "spouse": "narasimha-murthy-8c"
+    },
+    "ashwatha-narayana-9": {
+      "id": "ashwatha-narayana-9",
+      "name": "Ashwatha Narayana",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "narasimha-murthy-8"
+      ],
+      "spouse": "manjula",
+      "children": [
+        "sharath-kashyap"
+      ]
+    },
+    "manjula": {
+      "id": "manjula",
+      "name": "Manjula",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "ashwatha-narayana-9"
+    },
+    "pradeep": {
+      "id": "pradeep",
+      "name": "Pradeep",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "narayana-8"
+      ],
+      "spouse": "ashwini",
+      "children": [
+        "narayana-prasad"
+      ]
+    },
+    "ashwini": {
+      "id": "ashwini",
+      "name": "Ashwini",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "pradeep"
+    },
+    "prasad": {
+      "id": "prasad",
+      "name": "Prasad",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "jagadish"
+      ],
+      "spouse": "kavitha",
+      "children": [
+        "ramesh-10"
+      ]
+    },
+    "kavitha": {
+      "id": "kavitha",
+      "name": "Kavitha",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "prasad"
+    },
+    "sowmithreya-simha": {
+      "id": "sowmithreya-simha",
+      "name": "Sowmithreya Simha",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "narayana-swamy"
+      ],
+      "spouse": "samhitha",
+      "children": [
+        "ganesh-sharma"
+      ]
+    },
+    "samhitha": {
+      "id": "samhitha",
+      "name": "Samhitha",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "sowmithreya-simha"
+    },
+    "navaneeth": {
+      "id": "navaneeth",
+      "name": "Navaneeth",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "krishna-simha"
+      ],
+      "spouse": "meghana",
+      "children": [
+        "ashwin-kumar"
+      ]
+    },
+    "meghana": {
+      "id": "meghana",
+      "name": "Meghana",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "navaneeth"
+    },
+    "guruprasad": {
+      "id": "guruprasad",
+      "name": "Guruprasad",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "ramashesha"
+      ],
+      "spouse": "mithuna",
+      "children": [
+        "prasanna-simha"
+      ]
+    },
+    "mithuna": {
+      "id": "mithuna",
+      "name": "Mithuna",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "guruprasad"
+    },
+    "krishna-kumar": {
+      "id": "krishna-kumar",
+      "name": "Krishna Kumar",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "naganna"
+      ],
+      "children": [
+        "kishan"
+      ]
+    },
+    "ln-prasad": {
+      "id": "ln-prasad",
+      "name": "LN Prasad",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "krishna-murthy-8b"
+      ],
+      "spouse": "surekha",
+      "children": [
+        "jeevan"
+      ]
+    },
+    "surekha": {
+      "id": "surekha",
+      "name": "Surekha",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "ln-prasad"
+    },
+    "natesh": {
+      "id": "natesh",
+      "name": "Natesh",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "suresh"
+      ],
+      "spouse": "lakshmi",
+      "children": [
+        "ashwatha-narayana"
+      ]
+    },
+    "lakshmi": {
+      "id": "lakshmi",
+      "name": "Lakshmi",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "natesh"
+    },
+    "ramesh-9": {
+      "id": "ramesh-9",
+      "name": "Ramesh",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "ramesh-8"
+      ],
+      "spouse": "uma",
+      "children": [
+        "supreeth-kashyap"
+      ]
+    },
+    "uma": {
+      "id": "uma",
+      "name": "Uma",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "ramesh-9"
+    },
+    "thejas": {
+      "id": "thejas",
+      "name": "Thejas",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "prakash"
+      ],
+      "spouse": "rashmi",
+      "children": [
+        "daksh-kashyap",
+        "dhruva-kashyap"
+      ]
+    },
+    "rashmi": {
+      "id": "rashmi",
+      "name": "Rashmi",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "thejas"
+    },
+    "amith": {
+      "id": "amith",
+      "name": "Amith",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "harish-kumar"
+      ],
+      "children": [
+        "ullas"
+      ]
+    },
+    "santhrupth": {
+      "id": "santhrupth",
+      "name": "Santhrupth",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "narayana-murthy"
+      ],
+      "children": [
+        "muralidhar"
+      ]
+    },
+    "karthikeya": {
+      "id": "karthikeya",
+      "name": "Karthikeya",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "krishna-murthy-8c"
+      ],
+      "spouse": "shwetha",
+      "children": [
+        "shyam-prasad"
+      ]
+    },
+    "shwetha": {
+      "id": "shwetha",
+      "name": "Shwetha",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "karthikeya"
+    },
+    "suhas": {
+      "id": "suhas",
+      "name": "Suhas",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "krishna-murthy-8c"
+      ],
+      "spouse": "shruthi",
+      "children": [
+        "krishna-swamy"
+      ]
+    },
+    "shruthi": {
+      "id": "shruthi",
+      "name": "Shruthi",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "suhas"
+    },
+    "shyam-kumar": {
+      "id": "shyam-kumar",
+      "name": "Shyam Kumar",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "sathya-narayana"
+      ],
+      "spouse": "sharadamba",
+      "children": [
+        "narasimha-swamy"
+      ]
+    },
+    "sharadamba": {
+      "id": "sharadamba",
+      "name": "Sharadamba",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "shyam-kumar"
+    },
+    "raghavendra": {
+      "id": "raghavendra",
+      "name": "Raghavendra",
+      "generation": 9,
+      "gender": "M",
+      "parents": [
+        "narasimha-murthy-8c"
+      ],
+      "spouse": "nandini",
+      "children": [
+        "samarth-a-bhat"
+      ]
+    },
+    "nandini": {
+      "id": "nandini",
+      "name": "Nandini",
+      "generation": 9,
+      "gender": "F",
+      "spouse": "raghavendra"
+    },
+    "sharath-kashyap": {
+      "id": "sharath-kashyap",
+      "name": "Sharath Kashyap",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "ashwatha-narayana-9"
+      ],
+      "spouse": "smitha",
+      "children": [
+        "adrith-ullas-kashyap",
+        "aprameya-ullas-kashyap"
+      ]
+    },
+    "smitha": {
+      "id": "smitha",
+      "name": "Smitha",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "sharath-kashyap"
+    },
+    "narayana-prasad": {
+      "id": "narayana-prasad",
+      "name": "Narayana Prasad",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "pradeep"
+      ],
+      "spouse": "padma-10",
+      "children": [
+        "chinmay-bhatta"
+      ]
+    },
+    "padma-10": {
+      "id": "padma-10",
+      "name": "Padma",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "narayana-prasad"
+    },
+    "ramesh-10": {
+      "id": "ramesh-10",
+      "name": "Ramesh",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "prasad"
+      ],
+      "spouse": "ramya",
+      "children": [
+        "arnav"
+      ]
+    },
+    "ramya": {
+      "id": "ramya",
+      "name": "Ramya",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "ramesh-10"
+    },
+    "ganesh-sharma": {
+      "id": "ganesh-sharma",
+      "name": "Ganesh Sharma",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "sowmithreya-simha"
+      ]
+    },
+    "ashwin-kumar": {
+      "id": "ashwin-kumar",
+      "name": "Ashwin Kumar",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "navaneeth"
+      ]
+    },
+    "prasanna-simha": {
+      "id": "prasanna-simha",
+      "name": "Prasanna Simha",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "guruprasad"
+      ],
+      "spouse": "sneha"
+    },
+    "sneha": {
+      "id": "sneha",
+      "name": "Sneha",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "prasanna-simha"
+    },
+    "kishan": {
+      "id": "kishan",
+      "name": "Kishan",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "krishna-kumar"
+      ]
+    },
+    "jeevan": {
+      "id": "jeevan",
+      "name": "Jeevan",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "ln-prasad"
+      ],
+      "spouse": "poojitha"
+    },
+    "poojitha": {
+      "id": "poojitha",
+      "name": "Poojitha",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "jeevan"
+    },
+    "ashwatha-narayana": {
+      "id": "ashwatha-narayana",
+      "name": "Ashwatha Narayana",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "natesh"
+      ]
+    },
+    "supreeth-kashyap": {
+      "id": "supreeth-kashyap",
+      "name": "Supreeth Kashyap",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "ramesh-9"
+      ],
+      "spouse": "rakhee"
+    },
+    "rakhee": {
+      "id": "rakhee",
+      "name": "Rakhee",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "supreeth-kashyap"
+    },
+    "daksh-kashyap": {
+      "id": "daksh-kashyap",
+      "name": "Daksh Kashyap",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "thejas"
+      ]
+    },
+    "dhruva-kashyap": {
+      "id": "dhruva-kashyap",
+      "name": "Dhruva Kashyap",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "thejas"
+      ]
+    },
+    "ullas": {
+      "id": "ullas",
+      "name": "Ullas",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "amith"
+      ]
+    },
+    "muralidhar": {
+      "id": "muralidhar",
+      "name": "Muralidhar",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "santhrupth"
+      ],
+      "spouse": "srilatha"
+    },
+    "srilatha": {
+      "id": "srilatha",
+      "name": "Srilatha",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "muralidhar"
+    },
+    "shyam-prasad": {
+      "id": "shyam-prasad",
+      "name": "Shyam Prasad",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "karthikeya"
+      ],
+      "spouse": "gayithri-10"
+    },
+    "gayithri-10": {
+      "id": "gayithri-10",
+      "name": "Gayithri",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "shyam-prasad"
+    },
+    "krishna-swamy": {
+      "id": "krishna-swamy",
+      "name": "Krishna Swamy",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "suhas"
+      ],
+      "spouse": "vijaya-lakshmi-10"
+    },
+    "vijaya-lakshmi-10": {
+      "id": "vijaya-lakshmi-10",
+      "name": "Vijaya Lakshmi",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "krishna-swamy"
+    },
+    "narasimha-swamy": {
+      "id": "narasimha-swamy",
+      "name": "Narasimha Swamy",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "shyam-kumar"
+      ],
+      "spouse": "bhagya-lakshmi"
+    },
+    "bhagya-lakshmi": {
+      "id": "bhagya-lakshmi",
+      "name": "Bhagya Lakshmi",
+      "generation": 10,
+      "gender": "F",
+      "spouse": "narasimha-swamy"
+    },
+    "samarth-a-bhat": {
+      "id": "samarth-a-bhat",
+      "name": "Samarth A Bhat",
+      "generation": 10,
+      "gender": "M",
+      "parents": [
+        "raghavendra"
+      ]
+    },
+    "adrith-ullas-kashyap": {
+      "id": "adrith-ullas-kashyap",
+      "name": "Adrith Ullas Kashyap",
+      "generation": 11,
+      "gender": "M",
+      "parents": [
+        "sharath-kashyap"
+      ]
+    },
+    "aprameya-ullas-kashyap": {
+      "id": "aprameya-ullas-kashyap",
+      "name": "Aprameya Ullas Kashyap",
+      "generation": 11,
+      "gender": "M",
+      "parents": [
+        "sharath-kashyap"
+      ]
+    },
+    "chinmay-bhatta": {
+      "id": "chinmay-bhatta",
+      "name": "Chinmay Bhatta",
+      "generation": 11,
+      "gender": "M",
+      "parents": [
+        "narayana-prasad"
+      ]
+    },
+    "arnav": {
+      "id": "arnav",
+      "name": "Arnav",
+      "generation": 11,
+      "gender": "M",
+      "parents": [
+        "ramesh-10"
+      ]
+    }
+  }
+}
