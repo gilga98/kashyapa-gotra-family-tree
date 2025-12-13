@@ -623,3 +623,45 @@ body {
         top: 0;
     }
 }
+
+
+/* Add these additional styles at the end of style.css */
+
+.no-results {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.no-results i {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.no-results p {
+    margin-top: var(--spacing-sm);
+}
+
+/* Ensure proper stacking */
+.tree-group {
+    pointer-events: all;
+}
+
+/* Fix for inline elements */
+button[type="button"] {
+    -webkit-appearance: button;
+}
+
+/* Touch improvements */
+@media (hover: none) and (pointer: coarse) {
+    .node-card {
+        cursor: pointer;
+    }
+    
+    .control-btn,
+    .fab {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
