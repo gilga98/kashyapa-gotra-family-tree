@@ -1,799 +1,732 @@
-// Global variables
-let familyData = null;
+/* Mobile-first static Family Tree (D3 + Fuse) */
+
+const VIEWPORT_BREAKPOINT = 768;
+const MAX_RESULTS = 25;
+
+const el = {
+  svg: document.getElementById("treeSvg"),
+  viewport: document.getElementById("viewport"),
+
+  searchFab: document.getElementById("searchFab"),
+  searchOverlay: document.getElementById("searchOverlay"),
+  searchInput: document.getElementById("searchInput"),
+  searchResults: document.getElementById("searchResults"),
+  searchMeta: document.getElementById("searchMeta"),
+  closeSearch: document.getElementById("closeSearch"),
+
+  profileModal: document.getElementById("profileModal"),
+  closeProfile: document.getElementById("closeProfile"),
+  closeProfileBottom: document.getElementById("closeProfileBottom"),
+  profileTitle: document.getElementById("profileTitle"),
+  profileDates: document.getElementById("profileDates"),
+  profileNotes: document.getElementById("profileNotes"),
+  profilePhoto: document.getElementById("profilePhoto"),
+  profileFamily: document.getElementById("profileFamily"),
+
+  btnReset: document.getElementById("btnReset"),
+};
+
+let appData = null;
+let people = [];
+let peopleById = new Map();
+
+// D3 state
+let svg = null;
+let g = null;
+let gLinks = null;
+let gNodes = null;
+let zoom = null;
+
 let root = null;
-let svg, g, zoom, tree;
+let stratifiedRoot = null;
+let nodeById = new Map();
 let fuse = null;
-let currentOrientation = 'horizontal';
-let nodeIdCounter = 0;
 
-// Constants
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 60;
-const NODE_SPACING_X = 220;
-const NODE_SPACING_Y = 100;
+// layout config
+const CARD_W = 160;
+const CARD_H = 56;
+const CARD_RX = 12;
 
-// Check if DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
+const NODE_GAP_X = 40; // sibling separation
+const NODE_GAP_Y = 90; // generation separation (vertical layout)
+
+// ---------------------
+// Boot
+// ---------------------
+(async function init() {
+  appData = await fetchJSON("./data.json");
+  people = (appData.people || []).map(normalizePerson);
+  peopleById = new Map(people.map(p => [p.id, p]));
+
+  // Fuse config per PRD
+  fuse = new Fuse(people, {
+    keys: ["name", "maidenName", "nickname"],
+    threshold: 0.3,
+    ignoreLocation: true
+  });
+
+  initUI();
+  initD3();
+  buildHierarchy();
+  initialRender();
+
+  // Deep link
+  const deepId = getDeepLinkId();
+  if (deepId) {
+    // Allow initial render to settle, then teleport
+    setTimeout(() => searchAndZoom(deepId, { k: isMobileLayout() ? 1.25 : 1.1 }), 60);
+  }
+})();
+
+// ---------------------
+// UI init
+// ---------------------
+function initUI() {
+  el.searchFab.addEventListener("click", openSearch);
+  el.closeSearch.addEventListener("click", closeSearch);
+
+  el.searchOverlay.addEventListener("click", (e) => {
+    // Tap outside sheet closes
+    if (e.target === el.searchOverlay) closeSearch();
+  });
+
+  el.searchInput.addEventListener("input", onSearchInput);
+  el.searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSearch();
+  });
+
+  el.closeProfile.addEventListener("click", closeProfile);
+  el.closeProfileBottom.addEventListener("click", closeProfile);
+  el.profileModal.addEventListener("click", (e) => {
+    if (e.target === el.profileModal) closeProfile();
+  });
+
+  el.btnReset.addEventListener("click", () => {
+    resetView();
+  });
+
+  window.addEventListener("resize", onResize);
+  window.addEventListener("hashchange", () => {
+    const id = getDeepLinkId();
+    if (id) searchAndZoom(id);
+  });
 }
 
-// Main initialization function
-async function initApp() {
-    console.log('Initializing Family Tree Application...');
-    
-    try {
-        // Verify required libraries
-        if (typeof d3 === 'undefined') {
-            throw new Error('D3.js library not loaded');
-        }
-        if (typeof Fuse === 'undefined') {
-            throw new Error('Fuse.js library not loaded');
-        }
-        
-        // Verify DOM elements exist
-        const requiredElements = [
-            'tree-container', 'family-tree', 'search-fab', 
-            'search-overlay', 'profile-modal', 'loading'
-        ];
-        
-        for (const id of requiredElements) {
-            if (!document.getElementById(id)) {
-                throw new Error(`Required element #${id} not found in DOM`);
-            }
-        }
-        
-        await loadFamilyData();
-        initializeTree();
-        initializeSearch();
-        initializeEventListeners();
-        handleDeepLink();
-        hideLoading();
-        
-        console.log('Application initialized successfully');
-    } catch (error) {
-        console.error('Error initializing app:', error);
-        showError(error.message);
-    }
+function openSearch() {
+  el.searchOverlay.classList.remove("hidden");
+  el.searchOverlay.setAttribute("aria-hidden", "false");
+  el.searchInput.value = "";
+  el.searchResults.innerHTML = "";
+  el.searchMeta.textContent = "Type to search…";
+  setTimeout(() => el.searchInput.focus(), 0);
 }
 
-// Show error message
-function showError(message) {
-    const loading = document.getElementById('loading');
-    if (loading) {
-        loading.innerHTML = `
-            <div style="text-align: center; color: white;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h2>Error Loading Family Tree</h2>
-                <p>${message}</p>
-                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: white; cursor: pointer;">
-                    Reload Page
-                </button>
-            </div>
-        `;
-    }
+function closeSearch() {
+  el.searchOverlay.classList.add("hidden");
+  el.searchOverlay.setAttribute("aria-hidden", "true");
 }
 
-// Load family data from JSON - FIXED VERSION
-async function loadFamilyData() {
-    try {
-        const response = await fetch('family-tree.json');
-        if (!response.ok) {
-            throw new Error(`Failed to load family-tree.json: ${response.status}`);
-        }
-        
-        familyData = await response.json();
-        console.log('Family data loaded:', familyData.metadata);
-        
-        const personsArray = Object.values(familyData.persons);
-        
-        // Find all persons without parents
-        const personsWithoutParents = personsArray.filter(p => !p.parents || p.parents.length === 0);
-        console.log('Found', personsWithoutParents.length, 'persons without parents:', 
-            personsWithoutParents.map(p => p.name).join(', '));
-        
-        // Strategy: Create a virtual root that connects all orphaned branches
-        const VIRTUAL_ROOT_ID = '__VIRTUAL_ROOT__';
-        
-        // Create virtual root
-        const virtualRoot = {
-            id: VIRTUAL_ROOT_ID,
-            name: familyData.metadata.name || 'Family Tree',
-            generation: 0,
-            gender: 'M',
-            isVirtual: true,
-            parentId: null,
-            parents: [],
-            children: personsWithoutParents.map(p => p.id),
-            _expanded: true
-        };
-        
-        // Process all persons
-        const processedPersons = personsArray.map(person => {
-            // Determine parent: use actual parent or virtual root
-            let parentId;
-            if (person.parents && person.parents.length > 0) {
-                parentId = person.parents[0];
-            } else {
-                parentId = VIRTUAL_ROOT_ID; // Connect orphans to virtual root
-            }
-            
-            return {
-                id: person.id,
-                name: person.name,
-                generation: person.generation,
-                gender: person.gender,
-                birth: person.birth,
-                death: person.death,
-                biography: person.biography,
-                photo: person.photo,
-                maidenName: person.maidenName,
-                nickname: person.nickname,
-                parentId: parentId,
-                parents: person.parents || [],
-                children: person.children || [],
-                _expanded: true,
-                isVirtual: false
-            };
-        });
-        
-        // Combine virtual root with all persons
-        const allPersons = [virtualRoot, ...processedPersons];
-        
-        console.log('Creating hierarchy with', allPersons.length, 'total nodes (including virtual root)');
-        
-        // Create hierarchy using stratify
-        try {
-            root = d3.stratify()
-                .id(d => d.id)
-                .parentId(d => d.parentId)
-                (allPersons);
-        } catch (stratifyError) {
-            console.error('Stratify error:', stratifyError);
-            console.log('Sample person data:', allPersons.slice(0, 3));
-            throw new Error('Failed to create tree structure: ' + stratifyError.message);
-        }
-        
-        // Initialize positions
-        root.x0 = 0;
-        root.y0 = 0;
-        
-        // Collapse nodes beyond depth 4 initially (to avoid overwhelming display)
-        root.descendants().forEach((d) => {
-            d._children = d.children;
-            if (d.depth > 4 && d.children) {
-                d.children = null;
-            }
-        });
-        
-        // Auto-expand the virtual root if it exists
-        if (root.data.isVirtual && root.children) {
-            root.children.forEach(child => {
-                if (child.depth <= 2) {
-                    child.children = child._children;
-                }
-            });
-        }
-        
-        console.log('Tree hierarchy created successfully with', root.descendants().length, 'nodes');
-        
-    } catch (error) {
-        console.error('Error loading family data:', error);
-        throw error;
-    }
+function closeProfile() {
+  el.profileModal.classList.add("hidden");
+  el.profileModal.setAttribute("aria-hidden", "true");
 }
 
-// Initialize D3 tree
-function initializeTree() {
-    const container = document.getElementById('tree-container');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    
-    console.log('Initializing tree with dimensions:', width, 'x', height);
-    
-    // Determine orientation based on screen size
-    currentOrientation = width > 768 ? 'horizontal' : 'vertical';
-    
-    // Create SVG
-    svg = d3.select('#family-tree')
-        .attr('width', width)
-        .attr('height', height);
-    
-    // Clear any existing content
-    svg.selectAll('*').remove();
-    
-    // Create main group for zoom/pan
-    g = svg.append('g').attr('class', 'tree-group');
-    
-    // Setup zoom behavior
-    zoom = d3.zoom()
-        .scaleExtent([0.1, 3])
-        .on('zoom', (event) => {
-            g.attr('transform', event.transform);
-        });
-    
-    svg.call(zoom);
-    
-    // Create tree layout
-    updateTreeLayout();
-    
-    // Initial render
-    update(root);
-    
-    // Center on root after a short delay
-    setTimeout(() => {
-        // If virtual root, center on first real child
-        if (root.data.isVirtual && root.children && root.children.length > 0) {
-            centerNode(root.children[0]);
-        } else {
-            centerNode(root);
-        }
-    }, 100);
+function openProfile(personId) {
+  const p = peopleById.get(personId);
+  if (!p) return;
+
+  el.profileTitle.textContent = p.name || "Unknown";
+  el.profileDates.textContent = formatDateLine(p);
+  el.profileNotes.textContent = (p.notes || "").trim() || "—";
+
+  renderPhoto(p);
+  renderImmediateFamily(p);
+
+  el.profileModal.classList.remove("hidden");
+  el.profileModal.setAttribute("aria-hidden", "false");
 }
 
-// Update tree layout based on orientation
-function updateTreeLayout() {
-    const container = document.getElementById('tree-container');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    
-    if (currentOrientation === 'horizontal') {
-        tree = d3.tree()
-            .size([height - 100, width - 300])
-            .separation((a, b) => {
-                return a.parent === b.parent ? 1 : 1.2;
-            });
-    } else {
-        tree = d3.tree()
-            .size([width - 100, height - 300])
-            .separation((a, b) => {
-                return a.parent === b.parent ? 1 : 1.2;
-            });
-    }
+function renderPhoto(p) {
+  el.profilePhoto.innerHTML = "";
+  if (p.photoUrl) {
+    const img = document.createElement("img");
+    img.alt = `${p.name} photo`;
+    img.src = p.photoUrl;
+    el.profilePhoto.appendChild(img);
+    return;
+  }
+  const initials = document.createElement("div");
+  initials.className = "initials";
+  initials.textContent = getInitials(p.name);
+  el.profilePhoto.appendChild(initials);
 }
 
-// Update tree visualization
+function renderImmediateFamily(p) {
+  el.profileFamily.innerHTML = "";
+
+  const parents = (p.parents || []).map(id => peopleById.get(id)).filter(Boolean);
+  const spouses = (p.spouses || []).map(id => peopleById.get(id)).filter(Boolean);
+  const children = (p.children || []).map(id => peopleById.get(id)).filter(Boolean);
+
+  addFamilyGroup("Parents", parents);
+  addFamilyGroup("Spouses", spouses);
+  addFamilyGroup("Children", children);
+
+  if (el.profileFamily.innerHTML.trim() === "") {
+    const empty = document.createElement("div");
+    empty.className = "notes";
+    empty.textContent = "No immediate family links recorded.";
+    el.profileFamily.appendChild(empty);
+  }
+
+  function addFamilyGroup(label, list) {
+    if (!list.length) return;
+
+    const title = document.createElement("div");
+    title.className = "section-title";
+    title.textContent = label;
+    el.profileFamily.appendChild(title);
+
+    list.forEach(person => {
+      const row = document.createElement("div");
+      row.className = "pill";
+
+      const left = document.createElement("div");
+      left.textContent = person.name;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "Go";
+      btn.addEventListener("click", () => {
+        closeProfile();
+        closeSearch();
+        setHashId(person.id);
+        searchAndZoom(person.id);
+      });
+
+      row.appendChild(left);
+      row.appendChild(btn);
+      el.profileFamily.appendChild(row);
+    });
+  }
+}
+
+function onSearchInput() {
+  const q = (el.searchInput.value || "").trim();
+  if (!q) {
+    el.searchResults.innerHTML = "";
+    el.searchMeta.textContent = "Type to search…";
+    return;
+  }
+
+  const matches = fuse.search(q).slice(0, MAX_RESULTS).map(r => r.item);
+  el.searchMeta.textContent = `${matches.length} result(s)`;
+
+  el.searchResults.innerHTML = "";
+  matches.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "result-row";
+    row.setAttribute("role", "listitem");
+
+    const title = document.createElement("div");
+    title.className = "result-title";
+    title.textContent = formatResultTitle(p);
+
+    const sub = document.createElement("div");
+    sub.className = "result-sub";
+    sub.textContent = formatResultSub(p);
+
+    row.appendChild(title);
+    row.appendChild(sub);
+
+    row.addEventListener("click", () => {
+      closeSearch();
+      setHashId(p.id);
+      searchAndZoom(p.id, { k: isMobileLayout() ? 1.25 : 1.1 });
+    });
+
+    el.searchResults.appendChild(row);
+  });
+}
+
+// ---------------------
+// D3 init
+// ---------------------
+function initD3() {
+  svg = d3.select(el.svg);
+  svg.selectAll("*").remove();
+
+  // Main zoom layer
+  g = svg.append("g").attr("class", "zoom-layer");
+  gLinks = g.append("g").attr("class", "links");
+  gNodes = g.append("g").attr("class", "nodes");
+
+  zoom = d3.zoom()
+    .scaleExtent([0.35, 2.5])
+    .on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    });
+
+  svg.call(zoom);
+  svg.on("dblclick.zoom", null); // optional: avoid accidental double-tap zoom
+
+  // Background tap closes modals/overlays if needed (no-op)
+}
+
+function buildHierarchy() {
+  // d3.stratify needs exactly one parentId.
+  // Choose a "primary parent" (prefer male parent if available) so data becomes a tree.
+  const derived = people.map(p => {
+    const parentId = getPrimaryParentId(p);
+    return { ...p, parentId: parentId || null };
+  });
+
+  // Ensure exactly one root; if multiple, attach to a synthetic root.
+  const roots = derived.filter(d => !d.parentId);
+  let stratifyData = derived;
+
+  if (roots.length !== 1) {
+    const SYN_ID = "__synthetic_root__";
+    stratifyData = [
+      { id: SYN_ID, parentId: null, name: "Family", gender: "unknown", notes: "", birthDate: "", deathDate: "", parents: [], spouses: [], children: [], isSynthetic: true },
+      ...derived.map(d => (d.parentId ? d : { ...d, parentId: SYN_ID }))
+    ];
+  }
+
+  const stratify = d3.stratify()
+    .id(d => d.id)
+    .parentId(d => d.parentId);
+
+  stratifiedRoot = stratify(stratifyData);
+
+  // Convert to d3.hierarchy-like node with children toggling
+  root = stratifiedRoot;
+
+  // Collapse beyond depth 1 by default (keeps it friendly on mobile)
+  root.each(d => {
+    d._children = null;
+  });
+
+  root.children?.forEach(c => collapseDeep(c, 1));
+
+  rebuildNodeIndex();
+}
+
+function collapseDeep(node, depthFromHere) {
+  // collapse grandchildren and beyond
+  if (!node) return;
+  if (depthFromHere >= 1 && node.children && node.children.length) {
+    node._children = node.children;
+    node.children = null;
+  }
+  const kids = node._children || node.children || [];
+  kids.forEach(k => collapseDeep(k, depthFromHere + 1));
+}
+
+function rebuildNodeIndex() {
+  nodeById = new Map();
+  root.each(d => {
+    nodeById.set(d.id, d);
+  });
+}
+
+// ---------------------
+// Render/update
+// ---------------------
+function initialRender() {
+  update(root);
+
+  // Fit view to root
+  setTimeout(() => {
+    resetView();
+  }, 0);
+}
+
 function update(source) {
-    const duration = 750;
-    
-    // Compute new tree layout
-    const treeData = tree(root);
-    const nodes = treeData.descendants();
-    const links = treeData.links();
-    
-    // Normalize depth
-    nodes.forEach(d => {
-        if (currentOrientation === 'horizontal') {
-            d.y = d.depth * NODE_SPACING_X;
-        } else {
-            d.y = d.depth * NODE_SPACING_Y;
-        }
+  rebuildNodeIndex();
+
+  const { width, height } = el.svg.getBoundingClientRect();
+  svg.attr("viewBox", [0, 0, width, height]);
+
+  const vertical = isMobileLayout();
+
+  // Layout: d3.tree expects x/y on nodes; we will interpret them based on orientation.
+  const treeLayout = d3.tree()
+    .nodeSize([NODE_GAP_X + CARD_W, NODE_GAP_Y]);
+
+  treeLayout(root);
+
+  // Compute extents for positioning
+  const nodes = root.descendants();
+  const links = root.links();
+
+  // Centering offsets: keep everything in positive space with some padding
+  const pad = 80;
+
+  const xs = nodes.map(d => d.x);
+  const ys = nodes.map(d => d.y);
+
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+
+  // Offsets depend on orientation because we swap rendered coords
+  // Rendered:
+  // - vertical: x = d.x, y = d.y
+  // - horizontal: x = d.y, y = d.x
+  const offsetX = pad + (vertical ? -minX : -minY);
+  const offsetY = pad + (vertical ? -minY : -minX);
+
+  // Links (step / right-angle look)
+  const linkPath = (d) => stepLinkPath(d, { vertical, offsetX, offsetY });
+
+  const linkSel = gLinks.selectAll("path.link")
+    .data(links, d => d.target.id);
+
+  linkSel.enter()
+    .append("path")
+    .attr("class", "link")
+    .attr("d", linkPath)
+    .attr("opacity", 0.0)
+    .transition().duration(250)
+    .attr("opacity", 1.0);
+
+  linkSel.transition().duration(250).attr("d", linkPath);
+
+  linkSel.exit()
+    .transition().duration(150)
+    .attr("opacity", 0.0)
+    .remove();
+
+  // Nodes
+  const nodeSel = gNodes.selectAll("g.node")
+    .data(nodes, d => d.id);
+
+  const nodeEnter = nodeSel.enter()
+    .append("g")
+    .attr("class", "node")
+    .attr("data-id", d => d.id)
+    .attr("transform", d => `translate(${renderX(d, vertical, offsetX)}, ${renderY(d, vertical, offsetY)})`)
+    .attr("opacity", 0);
+
+  // Card group
+  const card = nodeEnter.append("g")
+    .attr("class", "node-card")
+    .style("cursor", d => (d.data?.isSynthetic ? "default" : "pointer"))
+    .on("click", (event, d) => {
+      // Synthetic root does nothing
+      if (d.data?.isSynthetic) return;
+      openProfile(d.id);
     });
-    
-    // Update nodes
-    const node = g.selectAll('g.node')
-        .data(nodes, d => d.data.id);
-    
-    // Enter new nodes
-    const nodeEnter = node.enter().append('g')
-        .attr('class', 'node node-card')
-        .attr('transform', d => {
-            if (currentOrientation === 'horizontal') {
-                return `translate(${source.y0 || 0},${source.x0 || 0})`;
-            } else {
-                return `translate(${source.x0 || 0},${source.y0 || 0})`;
-            }
-        })
-        .style('opacity', d => d.data.isVirtual ? 0.3 : 1) // Make virtual root transparent
-        .on('click', (event, d) => {
-            event.stopPropagation();
-            if (!d.data.isVirtual) {
-                showProfile(d.data);
-            }
-        });
-    
-    // Add node rectangle
-    nodeEnter.append('rect')
-        .attr('class', 'node-rect')
-        .attr('width', NODE_WIDTH)
-        .attr('height', NODE_HEIGHT)
-        .attr('x', -NODE_WIDTH / 2)
-        .attr('y', -NODE_HEIGHT / 2)
-        .attr('fill', d => d.data.gender === 'M' ? 'var(--node-male)' : 'var(--node-female)')
-        .attr('stroke', 'var(--node-border)')
-        .attr('stroke-dasharray', d => d.data.isVirtual ? '5,5' : '0'); // Dashed border for virtual
-    
-    // Add name text
-    nodeEnter.append('text')
-        .attr('class', 'node-name')
-        .attr('dy', '-0.3em')
-        .attr('text-anchor', 'middle')
-        .text(d => {
-            const name = d.data.name || 'Unknown';
-            return name.length > 22 ? name.substring(0, 20) + '...' : name;
-        });
-    
-    // Add dates/generation text
-    nodeEnter.append('text')
-        .attr('class', 'node-dates')
-        .attr('dy', '1.2em')
-        .attr('text-anchor', 'middle')
-        .text(d => {
-            if (d.data.isVirtual) return '';
-            if (d.data.birth || d.data.death) {
-                return `${d.data.birth || '?'} - ${d.data.death || 'Present'}`;
-            }
-            return `Gen ${d.data.generation}`;
-        });
-    
-    // Add expand/collapse indicator for nodes with children
-    const hasChildren = nodeEnter.filter(d => d.data.children && d.data.children.length > 0);
-    
-    hasChildren.append('circle')
-        .attr('class', 'expand-indicator')
-        .attr('r', 10)
-        .attr('cy', NODE_HEIGHT / 2 + 18)
-        .attr('fill', 'rgba(255, 255, 255, 0.9)')
-        .attr('stroke', 'var(--accent-color)')
-        .attr('stroke-width', 2)
-        .on('click', function(event, d) {
-            event.stopPropagation();
-            toggleNode(d);
-        });
-    
-    hasChildren.append('text')
-        .attr('class', 'expand-text')
-        .attr('y', NODE_HEIGHT / 2 + 18)
-        .attr('dy', '0.35em')
-        .attr('text-anchor', 'middle')
-        .attr('fill', 'var(--accent-color)')
-        .attr('font-size', '12px')
-        .attr('font-weight', 'bold')
-        .style('pointer-events', 'none')
-        .text(d => `+${d.data.children.length}`);
-    
-    // Update existing nodes
-    const nodeUpdate = nodeEnter.merge(node);
-    
-    nodeUpdate.transition()
-        .duration(duration)
-        .attr('transform', d => {
-            if (currentOrientation === 'horizontal') {
-                return `translate(${d.y},${d.x})`;
-            } else {
-                return `translate(${d.x},${d.y})`;
-            }
-        });
-    
-    // Remove exiting nodes
-    node.exit().transition()
-        .duration(duration)
-        .attr('transform', d => {
-            if (currentOrientation === 'horizontal') {
-                return `translate(${source.y},${source.x})`;
-            } else {
-                return `translate(${source.x},${source.y})`;
-            }
-        })
-        .style('opacity', 0)
-        .remove();
-    
-    // Update links
-    const link = g.selectAll('path.link')
-        .data(links, d => d.target.data.id);
-    
-    // Enter new links
-    const linkEnter = link.enter().insert('path', 'g')
-        .attr('class', 'link')
-        .attr('d', d => {
-            const o = {x: source.x0 || 0, y: source.y0 || 0};
-            return createStepPath(o, o);
-        })
-        .style('opacity', d => (d.source.data.isVirtual || d.target.data.isVirtual) ? 0.2 : 1);
-    
-    // Update existing links
-    linkEnter.merge(link).transition()
-        .duration(duration)
-        .attr('d', d => createStepPath(d.source, d.target));
-    
-    // Remove exiting links
-    link.exit().transition()
-        .duration(duration)
-        .attr('d', d => {
-            const o = {x: source.x, y: source.y};
-            return createStepPath(o, o);
-        })
-        .style('opacity', 0)
-        .remove();
-    
-    // Store old positions
-    nodes.forEach(d => {
-        d.x0 = d.x;
-        d.y0 = d.y;
+
+  card.append("rect")
+    .attr("x", -CARD_W / 2)
+    .attr("y", -CARD_H / 2)
+    .attr("width", CARD_W)
+    .attr("height", CARD_H)
+    .attr("rx", CARD_RX);
+
+  card.append("text")
+    .attr("class", "name")
+    .attr("x", 0)
+    .attr("y", -4)
+    .attr("text-anchor", "middle")
+    .text(d => d.data?.isSynthetic ? "" : (d.data?.name || "Unknown"));
+
+  card.append("text")
+    .attr("class", "dates")
+    .attr("x", 0)
+    .attr("y", 14)
+    .attr("text-anchor", "middle")
+    .text(d => d.data?.isSynthetic ? "" : formatYears(d.data));
+
+  // Child (+) indicator: toggles expand/collapse (separate from opening modal)
+  const indicator = nodeEnter.append("g")
+    .attr("class", "child-indicator")
+    .style("cursor", "pointer")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      if (d.data?.isSynthetic) return;
+      toggleNode(d);
+      update(d);
     });
+
+  indicator.append("circle")
+    .attr("r", 12)
+    .attr("cx", 0)
+    .attr("cy", CARD_H / 2 + 16);
+
+  indicator.append("text")
+    .attr("x", 0)
+    .attr("y", CARD_H / 2 + 16)
+    .text(d => (hasHiddenOrVisibleChildren(d) ? (d.children ? "–" : "+") : ""));
+
+  // Hide indicator for leaf nodes
+  indicator.attr("display", d => hasHiddenOrVisibleChildren(d) ? null : "none");
+
+  // Hide synthetic root card visually (but keep it in layout)
+  nodeEnter.attr("display", d => d.data?.isSynthetic ? "none" : null);
+
+  nodeEnter.transition().duration(250).attr("opacity", 1);
+
+  nodeSel.transition().duration(250)
+    .attr("transform", d => `translate(${renderX(d, vertical, offsetX)}, ${renderY(d, vertical, offsetY)})`)
+    .attr("opacity", 1)
+    .select(".child-indicator text")
+    .text(d => (hasHiddenOrVisibleChildren(d) ? (d.children ? "–" : "+") : ""));
+
+  nodeSel.select(".child-indicator")
+    .attr("display", d => hasHiddenOrVisibleChildren(d) ? null : "none");
+
+  nodeSel.exit()
+    .transition().duration(150)
+    .attr("opacity", 0)
+    .remove();
 }
 
-// Create step path for links
-function createStepPath(source, target) {
-    if (currentOrientation === 'horizontal') {
-        const midY = (source.y + target.y) / 2;
-        return `M${source.y},${source.x} H${midY} V${target.x} H${target.y}`;
-    } else {
-        const midY = (source.y + target.y) / 2;
-        return `M${source.x},${source.y} V${midY} H${target.x} V${target.y}`;
-    }
-}
-
-// Toggle node expansion
 function toggleNode(d) {
-    if (d.children) {
-        d._children = d.children;
-        d.children = null;
-    } else {
-        d.children = d._children;
-    }
-    update(d);
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else if (d._children) {
+    d.children = d._children;
+    d._children = null;
+  }
 }
 
-// Center view on a specific node
-function centerNode(d) {
-    const scale = 0.75;
-    const container = document.getElementById('tree-container');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    
-    let x, y;
-    if (currentOrientation === 'horizontal') {
-        x = -d.y * scale + width / 3;
-        y = -d.x * scale + height / 2;
-    } else {
-        x = -d.x * scale + width / 2;
-        y = -d.y * scale + height / 3;
-    }
-    
-    svg.transition()
-        .duration(750)
-        .call(zoom.transform, d3.zoomIdentity.translate(x, y).scale(scale));
+function hasHiddenOrVisibleChildren(d) {
+  return (d.children && d.children.length) || (d._children && d._children.length);
 }
 
-// Initialize Fuse.js search
-function initializeSearch() {
-    const personsArray = Object.values(familyData.persons);
-    
-    fuse = new Fuse(personsArray, {
-        keys: ['name', 'maidenName', 'nickname'],
-        threshold: 0.3,
-        includeScore: true,
-        minMatchCharLength: 2
-    });
-    
-    console.log('Search initialized with', personsArray.length, 'persons');
+// Step link path using d3.line + curveStep for right-angle style
+function stepLinkPath(link, { vertical, offsetX, offsetY }) {
+  const s = link.source;
+  const t = link.target;
+
+  const sx = renderX(s, vertical, offsetX);
+  const sy = renderY(s, vertical, offsetY);
+  const tx = renderX(t, vertical, offsetX);
+  const ty = renderY(t, vertical, offsetY);
+
+  // Anchor to edges of cards
+  // If vertical: link from bottom of parent to top of child
+  // If horizontal: link from right of parent to left of child
+  const start = vertical
+    ? [sx, sy + CARD_H / 2]
+    : [sx + CARD_W / 2, sy];
+
+  const end = vertical
+    ? [tx, ty - CARD_H / 2]
+    : [tx - CARD_W / 2, ty];
+
+  const line = d3.line().curve(d3.curveStep);
+  return line([start, end]);
 }
 
-// Perform search and display results
-function performSearch(query) {
-    const resultsContainer = document.getElementById('search-results');
-    
-    if (!query || query.trim().length < 2) {
-        resultsContainer.innerHTML = '';
-        return;
-    }
-    
-    const results = fuse.search(query);
-    
-    if (results.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><p>No matching family members found.</p></div>';
-        return;
-    }
-    
-    resultsContainer.innerHTML = results.slice(0, 50).map(result => {
-        const person = result.item;
-        const father = person.parents && person.parents[0] ? familyData.persons[person.parents[0]] : null;
-        
-        return `
-            <div class="search-result-item" data-id="${person.id}">
-                <div class="search-result-name">${person.name}</div>
-                <div class="search-result-meta">
-                    ${person.birth ? `Born: ${person.birth}` : `Generation ${person.generation}`}
-                    ${father ? ` • ${person.gender === 'M' ? 'Son' : 'Daughter'} of ${father.name}` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    // Add click handlers
-    resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const id = item.getAttribute('data-id');
-            searchAndZoom(id);
-        });
-    });
+function renderX(d, vertical, offsetX) {
+  return (vertical ? d.x : d.y) + offsetX;
+}
+function renderY(d, vertical, offsetY) {
+  return (vertical ? d.y : d.x) + offsetY;
 }
 
-// Teleport function - search and zoom to specific node
-function searchAndZoom(id) {
-    // Close search overlay
-    const searchOverlay = document.getElementById('search-overlay');
-    const searchInput = document.getElementById('search-input');
-    
-    if (searchOverlay) searchOverlay.classList.add('hidden');
-    if (searchInput) searchInput.value = '';
-    
-    // Find the node in the tree
-    const node = root.descendants().find(d => d.data.id === id);
-    
-    if (!node) {
-        console.error('Node not found:', id);
-        alert('Person not found in tree');
-        return;
+// ---------------------
+// Teleport / deep linking
+// ---------------------
+function searchAndZoom(id, { k = 1.2, duration = 750 } = {}) {
+  const target = nodeById.get(id);
+  if (!target) return;
+
+  // Expand ancestors to root so the node becomes visible
+  let n = target;
+  while (n) {
+    if (n._children) {
+      n.children = n._children;
+      n._children = null;
     }
-    
-    // Expand path from node to root
-    let current = node;
-    while (current.parent) {
-        if (!current.parent.children) {
-            current.parent.children = current.parent._children;
-        }
-        current = current.parent;
-    }
-    
-    // Update tree to show expanded path
+    n = n.parent;
+  }
+
+  // Re-render so coordinates are current
+  update(root);
+
+  const t = nodeById.get(id);
+  if (!t) return;
+
+  const vertical = isMobileLayout();
+  const renderedX = renderX(t, vertical, 0);
+  const renderedY = renderY(t, vertical, 0);
+
+  // We must account for the offsets used during update().
+  // Recompute offsets quickly in the same way update() does:
+  const nodes = root.descendants();
+  const xs = nodes.map(d => d.x);
+  const ys = nodes.map(d => d.y);
+  const pad = 80;
+
+  const minX = Math.min(...xs), minY = Math.min(...ys);
+
+  const offsetX = pad + (vertical ? -minX : -minY);
+  const offsetY = pad + (vertical ? -minY : -minX);
+
+  const x = (vertical ? t.x : t.y) + offsetX;
+  const y = (vertical ? t.y : t.x) + offsetY;
+
+  const { width, height } = el.svg.getBoundingClientRect();
+
+  const transform = d3.zoomIdentity
+    .translate(width / 2 - x * k, height / 2 - y * k)
+    .scale(k);
+
+  svg.transition()
+    .duration(duration)
+    .call(zoom.transform, transform);
+
+  // Highlight
+  const sel = gNodes.select(`[data-id="${CSS.escape(id)}"]`);
+  sel.classed("pulse-highlight", true);
+  setTimeout(() => sel.classed("pulse-highlight", false), 2000);
+}
+
+function getDeepLinkId() {
+  const h = (window.location.hash || "").replace(/^#/, "");
+  if (!h) return null;
+
+  // Support: #id=UUID OR #UUID
+  if (h.startsWith("id=")) return decodeURIComponent(h.slice(3));
+  return decodeURIComponent(h);
+}
+
+function setHashId(id) {
+  // keep it simple; deep link format: #id=...
+  window.location.hash = `id=${encodeURIComponent(id)}`;
+}
+
+// ---------------------
+// View helpers
+// ---------------------
+function resetView() {
+  const { width, height } = el.svg.getBoundingClientRect();
+  // Focus around root (or first child if synthetic root hidden)
+  const focusNode = root.data?.isSynthetic && root.children?.length ? root.children[0] : root;
+  if (!focusNode) return;
+
+  const vertical = isMobileLayout();
+
+  // Ensure root is expanded
+  if (focusNode._children) {
+    focusNode.children = focusNode._children;
+    focusNode._children = null;
     update(root);
-    
-    // Wait for update, then center and highlight
-    setTimeout(() => {
-        centerNode(node);
-        
-        // Add pulse highlight
-        setTimeout(() => {
-            const nodeElement = g.selectAll('g.node')
-                .filter(d => d.data.id === id)
-                .select('rect');
-            
-            if (nodeElement.node()) {
-                nodeElement.classed('pulse-highlight', true);
-                setTimeout(() => {
-                    nodeElement.classed('pulse-highlight', false);
-                }, 2000);
-            }
-        }, 800);
-    }, 100);
+  }
+
+  // Center root with comfortable zoom
+  const k = isMobileLayout() ? 0.9 : 0.85;
+
+  // Similar offset recompute
+  const nodes = root.descendants();
+  const xs = nodes.map(d => d.x);
+  const ys = nodes.map(d => d.y);
+  const pad = 80;
+
+  const minX = Math.min(...xs), minY = Math.min(...ys);
+  const offsetX = pad + (vertical ? -minX : -minY);
+  const offsetY = pad + (vertical ? -minY : -minX);
+
+  const x = (vertical ? focusNode.x : focusNode.y) + offsetX;
+  const y = (vertical ? focusNode.y : focusNode.x) + offsetY;
+
+  const transform = d3.zoomIdentity
+    .translate(width / 2 - x * k, height / 2 - y * k)
+    .scale(k);
+
+  svg.transition().duration(500).call(zoom.transform, transform);
 }
 
-// Show profile modal
-function showProfile(person) {
-    const modal = document.getElementById('profile-modal');
-    const photoDiv = document.getElementById('profile-photo');
-    const nameEl = document.getElementById('profile-name');
-    const datesEl = document.getElementById('profile-dates');
-    const bioEl = document.getElementById('profile-bio');
-    const familyEl = document.getElementById('profile-family');
-    
-    if (!modal) return;
-    
-    // Set photo
-    if (person.photo) {
-        photoDiv.innerHTML = `<img src="${person.photo}" alt="${person.name}">`;
-    } else {
-        const icon = person.gender === 'M' ? 'fa-male' : 'fa-female';
-        photoDiv.innerHTML = `<i class="fas ${icon}"></i>`;
-    }
-    
-    // Set name and dates
-    nameEl.textContent = person.name || 'Unknown';
-    
-    const dateInfo = [];
-    if (person.birth) dateInfo.push(`Born: ${person.birth}`);
-    if (person.death) dateInfo.push(`Died: ${person.death}`);
-    if (dateInfo.length === 0) dateInfo.push(`Generation ${person.generation}`);
-    datesEl.textContent = dateInfo.join(' • ');
-    
-    // Set biography
-    if (person.biography) {
-        bioEl.innerHTML = `<p>${person.biography}</p>`;
-        bioEl.style.display = 'block';
-    } else {
-        bioEl.style.display = 'none';
-    }
-    
-    // Build family links HTML
-    let familyHTML = '';
-    
-    // Parents
-    if (person.parents && person.parents.length > 0) {
-        const parentLinks = person.parents
-            .map(parentId => {
-                const parent = familyData.persons[parentId];
-                return parent ? `<span class="family-link" data-id="${parentId}">${parent.name}</span>` : '';
-            })
-            .filter(html => html)
-            .join('');
-        
-        if (parentLinks) {
-            familyHTML += `<div class="family-section"><h3>Parents</h3><div class="family-links">${parentLinks}</div></div>`;
-        }
-    }
-    
-    // Children
-    if (person.children && person.children.length > 0) {
-        const childLinks = person.children
-            .map(childId => {
-                const child = familyData.persons[childId];
-                return child ? `<span class="family-link" data-id="${childId}">${child.name}</span>` : '';
-            })
-            .filter(html => html)
-            .join('');
-        
-        if (childLinks) {
-            familyHTML += `<div class="family-section"><h3>Children (${person.children.length})</h3><div class="family-links">${childLinks}</div></div>`;
-        }
-    }
-    
-    familyEl.innerHTML = familyHTML || '<p style="opacity: 0.7; text-align: center;">No family connections recorded.</p>';
-    
-    // Add click handlers to family links
-    familyEl.querySelectorAll('.family-link').forEach(link => {
-        link.addEventListener('click', () => {
-            const id = link.getAttribute('data-id');
-            modal.classList.add('hidden');
-            setTimeout(() => searchAndZoom(id), 300);
-        });
-    });
-    
-    // Show modal
-    modal.classList.remove('hidden');
+function onResize() {
+  // Preserve current camera transform while re-layout happens
+  const current = d3.zoomTransform(el.svg);
+  update(root);
+  svg.call(zoom.transform, current);
 }
 
-// Initialize all event listeners
-function initializeEventListeners() {
-    // Search FAB
-    const searchFab = document.getElementById('search-fab');
-    if (searchFab) {
-        searchFab.addEventListener('click', () => {
-            const overlay = document.getElementById('search-overlay');
-            const input = document.getElementById('search-input');
-            if (overlay) overlay.classList.remove('hidden');
-            if (input) {
-                setTimeout(() => input.focus(), 100);
-            }
-        });
-    }
-    
-    // Close search
-    const closeSearch = document.getElementById('close-search');
-    if (closeSearch) {
-        closeSearch.addEventListener('click', () => {
-            const overlay = document.getElementById('search-overlay');
-            const input = document.getElementById('search-input');
-            if (overlay) overlay.classList.add('hidden');
-            if (input) input.value = '';
-        });
-    }
-    
-    // Search input
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            performSearch(e.target.value);
-        });
-    }
-    
-    // Close modal
-    const closeModal = document.getElementById('close-modal');
-    if (closeModal) {
-        closeModal.addEventListener('click', () => {
-            const modal = document.getElementById('profile-modal');
-            if (modal) modal.classList.add('hidden');
-        });
-    }
-    
-    // Close on backdrop click
-    const searchOverlay = document.getElementById('search-overlay');
-    if (searchOverlay) {
-        searchOverlay.addEventListener('click', (e) => {
-            if (e.target === searchOverlay) {
-                searchOverlay.classList.add('hidden');
-            }
-        });
-    }
-    
-    const profileModal = document.getElementById('profile-modal');
-    if (profileModal) {
-        profileModal.addEventListener('click', (e) => {
-            if (e.target === profileModal) {
-                profileModal.classList.add('hidden');
-            }
-        });
-    }
-    
-    // Zoom controls
-    const zoomIn = document.getElementById('zoom-in');
-    const zoomOut = document.getElementById('zoom-out');
-    const zoomReset = document.getElementById('zoom-reset');
-    
-    if (zoomIn) {
-        zoomIn.addEventListener('click', () => {
-            svg.transition().duration(300).call(zoom.scaleBy, 1.3);
-        });
-    }
-    
-    if (zoomOut) {
-        zoomOut.addEventListener('click', () => {
-            svg.transition().duration(300).call(zoom.scaleBy, 0.7);
-        });
-    }
-    
-    if (zoomReset) {
-        zoomReset.addEventListener('click', () => {
-            if (root.data.isVirtual && root.children && root.children.length > 0) {
-                centerNode(root.children[0]);
-            } else {
-                centerNode(root);
-            }
-        });
-    }
-    
-    // Handle window resize with debounce
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            const newOrientation = window.innerWidth > 768 ? 'horizontal' : 'vertical';
-            if (newOrientation !== currentOrientation) {
-                currentOrientation = newOrientation;
-                const container = document.getElementById('tree-container');
-                svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
-                updateTreeLayout();
-                update(root);
-                if (root.data.isVirtual && root.children && root.children.length > 0) {
-                    centerNode(root.children[0]);
-                } else {
-                    centerNode(root);
-                }
-            }
-        }, 300);
-    });
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const overlay = document.getElementById('search-overlay');
-            const modal = document.getElementById('profile-modal');
-            if (overlay && !overlay.classList.contains('hidden')) {
-                overlay.classList.add('hidden');
-            }
-            if (modal && !modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-            }
-        }
-        
-        if ((e.key === '/' || (e.ctrlKey && e.key === 'f')) && e.target.tagName !== 'INPUT') {
-            e.preventDefault();
-            const fab = document.getElementById('search-fab');
-            if (fab) fab.click();
-        }
-    });
-    
-    console.log('Event listeners initialized');
+// ---------------------
+// Data helpers
+// ---------------------
+function normalizePerson(p) {
+  return {
+    id: String(p.id),
+    name: p.name || "Unknown",
+    maidenName: p.maidenName || "",
+    nickname: p.nickname || "",
+    gender: p.gender || "unknown",
+    birthDate: p.birthDate || "",
+    deathDate: p.deathDate || "",
+    photoUrl: p.photoUrl || "",
+    notes: p.notes || "",
+    parents: Array.isArray(p.parents) ? p.parents : [],
+    spouses: Array.isArray(p.spouses) ? p.spouses : [],
+    children: Array.isArray(p.children) ? p.children : []
+  };
 }
 
-// Handle deep linking via URL hash
-function handleDeepLink() {
-    const hash = window.location.hash;
-    if (hash && hash.startsWith('#id=')) {
-        const id = hash.substring(4);
-        console.log('Deep link detected:', id);
-        setTimeout(() => searchAndZoom(id), 1500);
-    }
+function getPrimaryParentId(p) {
+  const parents = (p.parents || []).map(id => peopleById.get(id)).filter(Boolean);
+  if (!parents.length) return null;
+
+  const father = parents.find(x => x.gender === "male");
+  return (father || parents[0]).id;
 }
 
-// Hide loading indicator
-function hideLoading() {
-    const loading = document.getElementById('loading');
-    if (loading) {
-        setTimeout(() => {
-            loading.classList.add('hidden');
-        }, 500);
-    }
+function formatYears(p) {
+  const b = extractYear(p.birthDate);
+  const d = extractYear(p.deathDate);
+  if (!b && !d) return "";
+  if (b && !d) return `${b} –`;
+  if (!b && d) return `– ${d}`;
+  return `${b} – ${d}`;
+}
+
+function formatDateLine(p) {
+  const b = p.birthDate ? `Born: ${p.birthDate}` : "";
+  const d = p.deathDate ? `Died: ${p.deathDate}` : "";
+  if (b && d) return `${b} • ${d}`;
+  return b || d || "Dates not recorded";
+}
+
+function extractYear(s) {
+  if (!s) return "";
+  const m = String(s).match(/(\d{4})/);
+  return m ? m[1] : "";
+}
+
+function formatResultTitle(p) {
+  const by = extractYear(p.birthDate);
+  return by ? `${p.name} (${by})` : p.name;
+}
+
+function formatResultSub(p) {
+  const parents = (p.parents || []).map(id => peopleById.get(id)).filter(Boolean);
+  if (!parents.length) return "—";
+
+  const father = parents.find(x => x.gender === "male");
+  const parent = father || parents[0];
+  const rel = (p.gender === "female") ? "Daughter of" : (p.gender === "male" ? "Son of" : "Child of");
+  return `${rel} ${parent.name}`;
+}
+
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] || "?";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
+
+function isMobileLayout() {
+  return window.matchMedia(`(max-width: ${VIEWPORT_BREAKPOINT}px)`).matches;
+}
+
+async function fetchJSON(url) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+  return res.json();
 }
