@@ -86,8 +86,32 @@ async function loadFamilyData() {
         familyData = await response.json();
         console.log('Family data loaded:', familyData.metadata);
         
-        // Convert persons object to array for D3
-        const personsArray = Object.values(familyData.persons).map(person => {
+        // Find all persons without parents (potential roots)
+        const personsArray = Object.values(familyData.persons);
+        const personsWithoutParents = personsArray.filter(p => !p.parents || p.parents.length === 0);
+        
+        console.log('Found', personsWithoutParents.length, 'persons without parents');
+        
+        // Create a virtual root node to connect all orphan branches
+        const virtualRoot = {
+            id: '__virtual_root__',
+            name: familyData.metadata.rootAncestor || 'Family Tree',
+            generation: 0,
+            gender: 'M',
+            isVirtual: true,
+            parentId: null,
+            parents: [],
+            children: [],
+            _expanded: true
+        };
+        
+        // Convert persons to array format for D3
+        const processedPersons = personsArray.map(person => {
+            const parentId = (person.parents && person.parents[0]) ? person.parents[0] : null;
+            
+            // If no parent, connect to virtual root
+            const finalParentId = parentId || '__virtual_root__';
+            
             return {
                 id: person.id,
                 name: person.name,
@@ -99,26 +123,38 @@ async function loadFamilyData() {
                 photo: person.photo,
                 maidenName: person.maidenName,
                 nickname: person.nickname,
-                parentId: (person.parents && person.parents[0]) ? person.parents[0] : null,
+                parentId: finalParentId,
                 parents: person.parents || [],
                 children: person.children || [],
-                _expanded: true
+                _expanded: true,
+                isVirtual: false
             };
         });
+        
+        // Add virtual root to the array
+        const allPersons = [virtualRoot, ...processedPersons];
         
         // Create hierarchy using stratify
         root = d3.stratify()
             .id(d => d.id)
             .parentId(d => d.parentId)
-            (personsArray);
+            (allPersons);
         
         // Initialize positions
         root.x0 = 0;
         root.y0 = 0;
         
-        // Expand all initially
-        root.descendants().forEach(d => {
-            d._children = d.children;
+        // Initially expand only first two levels to avoid overcrowding
+        root.descendants().forEach((d, i) => {
+            if (d.depth < 3) {
+                d._children = d.children;
+            } else {
+                // Collapse deeper nodes initially
+                if (d.children) {
+                    d._children = d.children;
+                    d.children = null;
+                }
+            }
         });
         
         console.log('Tree hierarchy created with', root.descendants().length, 'nodes');
@@ -128,6 +164,7 @@ async function loadFamilyData() {
         throw error;
     }
 }
+
 
 // Initialize D3 tree
 function initializeTree() {
@@ -225,24 +262,27 @@ function update(source) {
         });
     
     // Add node rectangle
-    nodeEnter.append('rect')
-        .attr('class', 'node-rect')
-        .attr('width', NODE_WIDTH)
-        .attr('height', NODE_HEIGHT)
-        .attr('x', -NODE_WIDTH / 2)
-        .attr('y', -NODE_HEIGHT / 2)
-        .attr('fill', d => d.data.gender === 'M' ? 'var(--node-male)' : 'var(--node-female)')
-        .attr('stroke', 'var(--node-border)');
-    
-    // Add name text
-    nodeEnter.append('text')
-        .attr('class', 'node-name')
-        .attr('dy', '-0.3em')
-        .attr('text-anchor', 'middle')
-        .text(d => {
-            const name = d.data.name || 'Unknown';
-            return name.length > 22 ? name.substring(0, 20) + '...' : name;
-        });
+nodeEnter.append('rect')
+    .attr('class', 'node-rect')
+    .attr('width', NODE_WIDTH)
+    .attr('height', NODE_HEIGHT)
+    .attr('x', -NODE_WIDTH / 2)
+    .attr('y', -NODE_HEIGHT / 2)
+    .attr('fill', d => d.data.gender === 'M' ? 'var(--node-male)' : 'var(--node-female)')
+    .attr('stroke', 'var(--node-border)')
+    .attr('opacity', d => d.data.isVirtual ? 0.3 : 1); // Make virtual root semi-transparent
+
+// Add name text
+nodeEnter.append('text')
+    .attr('class', 'node-name')
+    .attr('dy', '-0.3em')
+    .attr('text-anchor', 'middle')
+    .attr('opacity', d => d.data.isVirtual ? 0.5 : 1) // Dim virtual root text
+    .text(d => {
+        const name = d.data.name || 'Unknown';
+        return name.length > 22 ? name.substring(0, 20) + '...' : name;
+    });
+
     
     // Add dates/generation text
     nodeEnter.append('text')
