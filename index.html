@@ -547,7 +547,7 @@
         const peopleMap = {};
 
         // Load family tree data from external JSON file
-        fetch('family-tree.json')
+        fetch('./family-tree.json')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load family-tree.json');
