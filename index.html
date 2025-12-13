@@ -5,168 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vamsha Vruksha</title>
   
+  <!-- External Libraries -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
-    body { background: #0f172a; color: white; margin: 0; font-family: sans-serif; }
-    #chart-container { height: 100vh; }
+    body { background: #0f172a; color: white; margin: 0; font-family: sans-serif; overflow: hidden; }
+    #chart-container { height: 100vh; width: 100vw; background-color: #0f172a; }
     
+    .toolbar {
+      position: fixed; top: 10px; left: 10px; z-index: 999;
+      background: rgba(30, 41, 59, 0.9); padding: 8px; border-radius: 8px; border: 1px solid #475569;
+      display: flex; gap: 8px; backdrop-filter: blur(4px);
+    }
+    input { background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 10px; border-radius: 4px; outline: none; }
+    input:focus { border-color: #3b82f6; }
+    button { cursor: pointer; background: #3b82f6; border: none; color: white; padding: 6px 12px; border-radius: 4px; font-size: 13px; transition: background 0.2s; }
+    button:hover { background: #2563eb; }
+
+    /* Node Card Styles */
     .node-card {
       background: #1e293b;
       border: 1px solid #475569;
       border-radius: 8px;
-      width: 250px;
-      padding: 10px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+      justify-content: center;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s;
     }
+    .node-card:hover { border-color: #60a5fa; transform: translateY(-2px); }
     
     .couple-row {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 12px;
       width: 100%;
     }
     
     .person-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
-      flex: 1;
     }
     
-    .name { font-weight: bold; font-size: 13px; color: #e2e8f0; }
-    .gen { font-size: 10px; color: #94a3b8; margin-top: 2px; }
-    .icon { font-size: 18px; margin-bottom: 4px; display: block; }
+    .name { font-weight: 600; font-size: 14px; color: #f1f5f9; margin-bottom: 2px; }
+    .gen { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .icon { font-size: 20px; margin-bottom: 6px; }
     
     .m-icon { color: #60a5fa; }
     .f-icon { color: #f472b6; }
     
-    .heart { color: #f43f5e; font-size: 12px; margin-top: 5px; }
-    
-    .toolbar {
-      position: fixed; top: 10px; left: 10px; z-index: 999;
-      background: rgba(30, 41, 59, 0.9); padding: 8px; border-radius: 8px; border: 1px solid #475569;
-      display: flex; gap: 8px;
-    }
-    input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; }
-    button { cursor: pointer; background: #3b82f6; border: none; color: white; padding: 5px 10px; border-radius: 4px; }
+    .heart-icon { color: #f43f5e; font-size: 12px; opacity: 0.8; }
   </style>
 </head>
 <body>
 
-<div class="toolbar">
-  <input id="search" placeholder="Search..." oninput="search(this.value)">
-  <button onclick="chart.expandAll()">Expand All</button>
-  <button onclick="chart.fit()">Fit</button>
-  <button onclick="chart.exportImg()">Download Image</button>
-</div>
+  <div class="toolbar">
+    <input id="searchInput" placeholder="Search name..." />
+    <button id="expandBtn">Expand All</button>
+    <button id="fitBtn">Fit to Screen</button>
+    <button id="downloadBtn">Download Image</button>
+  </div>
 
-<div id="chart-container"></div>
+  <div id="chart-container"></div>
 
-<script>
-  let chart;
-  
-  fetch('family-tree.json')
-    .then(r => r.json())
-    .then(data => {
-      const persons = data.persons;
-      const marriages = data.marriages || [];
-      
-      // 1. Build Spouse Map
-      const spouseMap = {};
-      marriages.forEach(m => {
-        spouseMap[m.person1Id] = m.person2Id;
-        spouseMap[m.person2Id] = m.person1Id;
-      });
-
-      // 2. Prepare Nodes
-      // We only create chart nodes for "Lineage Members" (people with parents in the tree OR root).
-      // Spouses are strictly visual attachments.
-      const nodes = [];
-      const lineageIds = new Set();
-      
-      // Identify who is in the bloodline (has parents listed in data)
-      Object.values(persons).forEach(p => {
-        if((p.parents && p.parents.length) || p.id === 'giri-bhatta-1') {
-          lineageIds.add(p.id);
-        }
-      });
-      
-      Object.values(persons).forEach(p => {
-        // Only render if they are a lineage member
-        if (!lineageIds.has(p.id)) return;
-        
-        let spouseId = spouseMap[p.id];
-        let spouseData = null;
-        if (spouseId && persons[spouseId]) {
-          spouseData = persons[spouseId];
-        }
-
-        nodes.push({
-          id: p.id,
-          parentId: (p.parents && p.parents.length) ? p.parents[0] : '',
-          name: p.name,
-          gender: p.gender,
-          generation: p.generation,
-          spouse: spouseData
-        });
-      });
-
-      // 3. Render
-      chart = new d3.OrgChart()
-        .container('#chart-container')
-        .data(nodes)
-        .nodeHeight(d => 85)
-        .nodeWidth(d => d.data.spouse ? 260 : 140)
-        .childrenMargin(d => 50)
-        .compactMarginBetween(d => 25)
-        .compactMarginPair(d => 15)
-        .backgroundColor('#0f172a')
-        .nodeContent(d => {
-          const p = d.data;
-          const s = p.spouse;
-          
-          const pIcon = p.gender === 'M' ? '<i class="fa-solid fa-user m-icon icon"></i>' : '<i class="fa-solid fa-user f-icon icon"></i>';
-          
-          let html = `<div class="node-card" style="width:${s ? '240px' : '120px'}">
-            <div class="couple-row">
-              <div class="person-box">
-                ${pIcon}
-                <div class="name">${p.name}</div>
-                <div class="gen">Gen ${p.generation}</div>
-              </div>`;
-              
-          if(s) {
-            const sIcon = s.gender === 'M' ? '<i class="fa-solid fa-user m-icon icon"></i>' : '<i class="fa-solid fa-user f-icon icon"></i>';
-            html += `<i class="fa-solid fa-heart heart"></i>
-              <div class="person-box">
-                ${sIcon}
-                <div class="name">${s.name}</div>
-                <div class="gen">Spouse</div>
-              </div>`;
-          }
-          
-          html += `</div></div>`;
-          return html;
-        })
-        .render();
-        
-      chart.expandAll();
-    });
-
-  function search(val) {
-    if(!val) { chart.clearHighlighting(); return; }
-    const data = chart.data();
-    const found = data.filter(d => d.name.toLowerCase().includes(val.toLowerCase()) || (d.spouse && d.spouse.name.toLowerCase().includes(val.toLowerCase())));
-    chart.clearHighlighting();
-    found.forEach(f => chart.setHighlighted(f.id).render());
-    if(found.length === 1) chart.setUpToTheRootHighlighted(found[0].id).render().fit();
-  }
-</script>
+  <!-- Load the External Script at the end -->
+  <script src="script.js"></script>
 </body>
 </html>
