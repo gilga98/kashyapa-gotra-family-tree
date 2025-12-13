@@ -75,7 +75,7 @@ function showError(message) {
     }
 }
 
-// Load family data from JSON
+// Load family data from JSON - FIXED VERSION
 async function loadFamilyData() {
     try {
         const response = await fetch('family-tree.json');
@@ -86,31 +86,38 @@ async function loadFamilyData() {
         familyData = await response.json();
         console.log('Family data loaded:', familyData.metadata);
         
-        // Find all persons without parents (potential roots)
         const personsArray = Object.values(familyData.persons);
+        
+        // Find all persons without parents
         const personsWithoutParents = personsArray.filter(p => !p.parents || p.parents.length === 0);
+        console.log('Found', personsWithoutParents.length, 'persons without parents:', 
+            personsWithoutParents.map(p => p.name).join(', '));
         
-        console.log('Found', personsWithoutParents.length, 'persons without parents');
+        // Strategy: Create a virtual root that connects all orphaned branches
+        const VIRTUAL_ROOT_ID = '__VIRTUAL_ROOT__';
         
-        // Create a virtual root node to connect all orphan branches
+        // Create virtual root
         const virtualRoot = {
-            id: '__virtual_root__',
-            name: familyData.metadata.rootAncestor || 'Family Tree',
+            id: VIRTUAL_ROOT_ID,
+            name: familyData.metadata.name || 'Family Tree',
             generation: 0,
             gender: 'M',
             isVirtual: true,
             parentId: null,
             parents: [],
-            children: [],
+            children: personsWithoutParents.map(p => p.id),
             _expanded: true
         };
         
-        // Convert persons to array format for D3
+        // Process all persons
         const processedPersons = personsArray.map(person => {
-            const parentId = (person.parents && person.parents[0]) ? person.parents[0] : null;
-            
-            // If no parent, connect to virtual root
-            const finalParentId = parentId || '__virtual_root__';
+            // Determine parent: use actual parent or virtual root
+            let parentId;
+            if (person.parents && person.parents.length > 0) {
+                parentId = person.parents[0];
+            } else {
+                parentId = VIRTUAL_ROOT_ID; // Connect orphans to virtual root
+            }
             
             return {
                 id: person.id,
@@ -123,7 +130,7 @@ async function loadFamilyData() {
                 photo: person.photo,
                 maidenName: person.maidenName,
                 nickname: person.nickname,
-                parentId: finalParentId,
+                parentId: parentId,
                 parents: person.parents || [],
                 children: person.children || [],
                 _expanded: true,
@@ -131,40 +138,51 @@ async function loadFamilyData() {
             };
         });
         
-        // Add virtual root to the array
+        // Combine virtual root with all persons
         const allPersons = [virtualRoot, ...processedPersons];
         
+        console.log('Creating hierarchy with', allPersons.length, 'total nodes (including virtual root)');
+        
         // Create hierarchy using stratify
-        root = d3.stratify()
-            .id(d => d.id)
-            .parentId(d => d.parentId)
-            (allPersons);
+        try {
+            root = d3.stratify()
+                .id(d => d.id)
+                .parentId(d => d.parentId)
+                (allPersons);
+        } catch (stratifyError) {
+            console.error('Stratify error:', stratifyError);
+            console.log('Sample person data:', allPersons.slice(0, 3));
+            throw new Error('Failed to create tree structure: ' + stratifyError.message);
+        }
         
         // Initialize positions
         root.x0 = 0;
         root.y0 = 0;
         
-        // Initially expand only first two levels to avoid overcrowding
-        root.descendants().forEach((d, i) => {
-            if (d.depth < 3) {
-                d._children = d.children;
-            } else {
-                // Collapse deeper nodes initially
-                if (d.children) {
-                    d._children = d.children;
-                    d.children = null;
-                }
+        // Collapse nodes beyond depth 4 initially (to avoid overwhelming display)
+        root.descendants().forEach((d) => {
+            d._children = d.children;
+            if (d.depth > 4 && d.children) {
+                d.children = null;
             }
         });
         
-        console.log('Tree hierarchy created with', root.descendants().length, 'nodes');
+        // Auto-expand the virtual root if it exists
+        if (root.data.isVirtual && root.children) {
+            root.children.forEach(child => {
+                if (child.depth <= 2) {
+                    child.children = child._children;
+                }
+            });
+        }
+        
+        console.log('Tree hierarchy created successfully with', root.descendants().length, 'nodes');
         
     } catch (error) {
         console.error('Error loading family data:', error);
         throw error;
     }
 }
-
 
 // Initialize D3 tree
 function initializeTree() {
@@ -204,7 +222,14 @@ function initializeTree() {
     update(root);
     
     // Center on root after a short delay
-    setTimeout(() => centerNode(root), 100);
+    setTimeout(() => {
+        // If virtual root, center on first real child
+        if (root.data.isVirtual && root.children && root.children.length > 0) {
+            centerNode(root.children[0]);
+        } else {
+            centerNode(root);
+        }
+    }, 100);
 }
 
 // Update tree layout based on orientation
@@ -216,11 +241,15 @@ function updateTreeLayout() {
     if (currentOrientation === 'horizontal') {
         tree = d3.tree()
             .size([height - 100, width - 300])
-            .separation((a, b) => a.parent === b.parent ? 1 : 1.5);
+            .separation((a, b) => {
+                return a.parent === b.parent ? 1 : 1.2;
+            });
     } else {
         tree = d3.tree()
             .size([width - 100, height - 300])
-            .separation((a, b) => a.parent === b.parent ? 1 : 1.5);
+            .separation((a, b) => {
+                return a.parent === b.parent ? 1 : 1.2;
+            });
     }
 }
 
@@ -256,33 +285,34 @@ function update(source) {
                 return `translate(${source.x0 || 0},${source.y0 || 0})`;
             }
         })
+        .style('opacity', d => d.data.isVirtual ? 0.3 : 1) // Make virtual root transparent
         .on('click', (event, d) => {
             event.stopPropagation();
-            showProfile(d.data);
+            if (!d.data.isVirtual) {
+                showProfile(d.data);
+            }
         });
     
     // Add node rectangle
-nodeEnter.append('rect')
-    .attr('class', 'node-rect')
-    .attr('width', NODE_WIDTH)
-    .attr('height', NODE_HEIGHT)
-    .attr('x', -NODE_WIDTH / 2)
-    .attr('y', -NODE_HEIGHT / 2)
-    .attr('fill', d => d.data.gender === 'M' ? 'var(--node-male)' : 'var(--node-female)')
-    .attr('stroke', 'var(--node-border)')
-    .attr('opacity', d => d.data.isVirtual ? 0.3 : 1); // Make virtual root semi-transparent
-
-// Add name text
-nodeEnter.append('text')
-    .attr('class', 'node-name')
-    .attr('dy', '-0.3em')
-    .attr('text-anchor', 'middle')
-    .attr('opacity', d => d.data.isVirtual ? 0.5 : 1) // Dim virtual root text
-    .text(d => {
-        const name = d.data.name || 'Unknown';
-        return name.length > 22 ? name.substring(0, 20) + '...' : name;
-    });
-
+    nodeEnter.append('rect')
+        .attr('class', 'node-rect')
+        .attr('width', NODE_WIDTH)
+        .attr('height', NODE_HEIGHT)
+        .attr('x', -NODE_WIDTH / 2)
+        .attr('y', -NODE_HEIGHT / 2)
+        .attr('fill', d => d.data.gender === 'M' ? 'var(--node-male)' : 'var(--node-female)')
+        .attr('stroke', 'var(--node-border)')
+        .attr('stroke-dasharray', d => d.data.isVirtual ? '5,5' : '0'); // Dashed border for virtual
+    
+    // Add name text
+    nodeEnter.append('text')
+        .attr('class', 'node-name')
+        .attr('dy', '-0.3em')
+        .attr('text-anchor', 'middle')
+        .text(d => {
+            const name = d.data.name || 'Unknown';
+            return name.length > 22 ? name.substring(0, 20) + '...' : name;
+        });
     
     // Add dates/generation text
     nodeEnter.append('text')
@@ -290,6 +320,7 @@ nodeEnter.append('text')
         .attr('dy', '1.2em')
         .attr('text-anchor', 'middle')
         .text(d => {
+            if (d.data.isVirtual) return '';
             if (d.data.birth || d.data.death) {
                 return `${d.data.birth || '?'} - ${d.data.death || 'Present'}`;
             }
@@ -345,6 +376,7 @@ nodeEnter.append('text')
                 return `translate(${source.x},${source.y})`;
             }
         })
+        .style('opacity', 0)
         .remove();
     
     // Update links
@@ -357,7 +389,8 @@ nodeEnter.append('text')
         .attr('d', d => {
             const o = {x: source.x0 || 0, y: source.y0 || 0};
             return createStepPath(o, o);
-        });
+        })
+        .style('opacity', d => (d.source.data.isVirtual || d.target.data.isVirtual) ? 0.2 : 1);
     
     // Update existing links
     linkEnter.merge(link).transition()
@@ -371,6 +404,7 @@ nodeEnter.append('text')
             const o = {x: source.x, y: source.y};
             return createStepPath(o, o);
         })
+        .style('opacity', 0)
         .remove();
     
     // Store old positions
@@ -692,7 +726,11 @@ function initializeEventListeners() {
     
     if (zoomReset) {
         zoomReset.addEventListener('click', () => {
-            centerNode(root);
+            if (root.data.isVirtual && root.children && root.children.length > 0) {
+                centerNode(root.children[0]);
+            } else {
+                centerNode(root);
+            }
         });
     }
     
@@ -708,7 +746,11 @@ function initializeEventListeners() {
                 svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
                 updateTreeLayout();
                 update(root);
-                centerNode(root);
+                if (root.data.isVirtual && root.children && root.children.length > 0) {
+                    centerNode(root.children[0]);
+                } else {
+                    centerNode(root);
+                }
             }
         }, 300);
     });
