@@ -1,82 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vamsha Vruksha</title>
-  
-  <!-- External Libraries -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-  <style>
-    body { background: #0f172a; color: white; margin: 0; font-family: sans-serif; overflow: hidden; }
-    #chart-container { height: 100vh; width: 100vw; background-color: #0f172a; }
-    
-    .toolbar {
-      position: fixed; top: 10px; left: 10px; z-index: 999;
-      background: rgba(30, 41, 59, 0.9); padding: 8px; border-radius: 8px; border: 1px solid #475569;
-      display: flex; gap: 8px; backdrop-filter: blur(4px);
-    }
-    input { background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 10px; border-radius: 4px; outline: none; }
-    input:focus { border-color: #3b82f6; }
-    button { cursor: pointer; background: #3b82f6; border: none; color: white; padding: 6px 12px; border-radius: 4px; font-size: 13px; transition: background 0.2s; }
-    button:hover { background: #2563eb; }
-
-    /* Node Card Styles */
-    .node-card {
-      background: #1e293b;
-      border: 1px solid #475569;
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-      transition: transform 0.2s;
-    }
-    .node-card:hover { border-color: #60a5fa; transform: translateY(-2px); }
-    
-    .couple-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-    }
-    
-    .person-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    
-    .name { font-weight: 600; font-size: 14px; color: #f1f5f9; margin-bottom: 2px; }
-    .gen { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .icon { font-size: 20px; margin-bottom: 6px; }
-    
-    .m-icon { color: #60a5fa; }
-    .f-icon { color: #f472b6; }
-    
-    .heart-icon { color: #f43f5e; font-size: 12px; opacity: 0.8; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Vamsha Vruksha - Family Tree</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Header -->
+    <header class="glass-header">
+        <h1>Vamsha Vruksha</h1>
+        <p class="subtitle">Kashyapa Gothra</p>
+    </header>
 
-  <div class="toolbar">
-    <input id="searchInput" placeholder="Search name..." />
-    <button id="expandBtn">Expand All</button>
-    <button id="fitBtn">Fit to Screen</button>
-    <button id="downloadBtn">Download Image</button>
-  </div>
+    <!-- Main Tree Canvas -->
+    <div id="tree-container">
+        <svg id="family-tree"></svg>
+        
+        <!-- Zoom Controls -->
+        <div class="zoom-controls glass-panel">
+            <button id="zoom-in" class="control-btn" title="Zoom In">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button id="zoom-reset" class="control-btn" title="Reset View">
+                <i class="fas fa-home"></i>
+            </button>
+            <button id="zoom-out" class="control-btn" title="Zoom Out">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+    </div>
 
-  <div id="chart-container"></div>
+    <!-- Floating Action Button (Search Trigger) -->
+    <button id="search-fab" class="fab glass-panel" title="Search Family Members">
+        <i class="fas fa-search"></i>
+    </button>
 
-  <!-- Load the External Script at the end -->
-  <script src="script.js"></script>
+    <!-- Search Overlay (Initially Hidden) -->
+    <div id="search-overlay" class="search-overlay hidden">
+        <div class="search-container glass-panel">
+            <div class="search-header">
+                <input type="text" id="search-input" placeholder="Search by name, nickname..." autofocus>
+                <button id="close-search" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </div>
+
+    <!-- Profile Modal (Initially Hidden) -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <button id="close-modal" class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <div id="profile-photo" class="profile-photo">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2 id="profile-name"></h2>
+                <p id="profile-dates" class="profile-dates"></p>
+            </div>
+            <div class="modal-body">
+                <div id="profile-bio" class="profile-bio"></div>
+                <div id="profile-family" class="profile-family"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading Family Tree...</p>
+    </div>
+
+    <!-- CDN Scripts -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <script src="script.js"></script>
 </body>
 </html>
