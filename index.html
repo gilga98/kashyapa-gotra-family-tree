@@ -556,7 +556,7 @@
             })
             .then(data => {
                 treeData = data;
-                
+                console.log("Tree data", treeData);
                 // Create a map for easy lookup
                 treeData.people.forEach(person => {
                     peopleMap[person.id] = person;
