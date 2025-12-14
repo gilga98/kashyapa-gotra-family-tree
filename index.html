@@ -1,345 +1,186 @@
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vamsha Vruksha - Family Tree</title>
-
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    .container { max-width: 1400px; margin: 0 auto; }
-
-    header {
-      color: #fff;
-      text-align: center;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.20);
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 18px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-    }
-    h1 { margin: 0 0 6px; font-size: 2.2rem; }
-    .subtitle { margin: 0; opacity: 0.9; }
-
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-    .stat { min-width: 160px; }
-    .stat-number { font-size: 1.6rem; font-weight: 800; }
-    .stat-label { opacity: 0.85; font-size: 0.9rem; }
-
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .control-panel {
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.20);
-      border-radius: 15px;
-      padding: 14px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-      color: #fff;
-    }
-
-    .search-box {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 2px solid rgba(255,255,255,0.25);
-      outline: none;
-      background: rgba(255,255,255,0.10);
-      color: #fff;
-      font-size: 1rem;
-    }
-    .search-box::placeholder { color: rgba(255,255,255,0.65); }
-    .search-box:focus { border-color: rgba(255,255,255,0.55); }
-
-    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    button {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 2px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.10);
-      color: #fff;
-      cursor: pointer;
-      font-weight: 650;
-      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-    }
-    button:hover { transform: translateY(-1px); background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.40); }
-    button.active { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.70); }
-
-    .tree-container {
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.20);
-      border-radius: 20px;
-      padding: 18px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-      overflow-x: auto;
-      min-height: 320px;
-      color: #fff;
-    }
-
-    .generation {
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-      position: relative;
-      padding-top: 16px;
-    }
-    .gen-label {
-      position: absolute;
-      top: -6px;
-      left: 10px;
-      background: rgba(255,255,255,0.18);
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      font-weight: 700;
-    }
-
-    .person-card {
-      width: 220px;
-      border-radius: 14px;
-      border: 2px solid rgba(255,255,255,0.20);
-      background: rgba(255,255,255,0.14);
-      padding: 12px;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-      user-select: none;
-    }
-    .person-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); }
-    .person-card.highlight { border-color: rgba(255,215,0,0.7); box-shadow: 0 0 22px rgba(255,215,0,0.25); }
-
-    .person-avatar {
-      width: 58px; height: 58px;
-      border-radius: 50%;
-      margin: 0 auto 8px;
-      display: grid;
-      place-items: center;
-      border: 2px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.18);
-      font-size: 1.6rem;
-    }
-    .person-name { text-align: center; font-weight: 800; margin-bottom: 6px; }
-    .person-details { text-align: center; font-size: 0.9rem; opacity: 0.92; }
-    .spouse-tag {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      background: rgba(255,105,180,0.25);
-      font-size: 0.78rem;
-    }
-
-    .empty-state { text-align: center; opacity: 0.8; padding: 46px 10px; }
-
-    /* Modal */
-    .detail-modal {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.70);
-      z-index: 999;
-      padding: 16px;
-    }
-    .detail-modal.active { display: flex; }
-
-    .modal-content {
-      width: min(560px, 96vw);
-      max-height: 82vh;
-      overflow: auto;
-      background: rgba(255,255,255,0.96);
-      color: #222;
-      border-radius: 18px;
-      padding: 22px;
-      position: relative;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
-    }
-    .close-btn {
-      position: absolute;
-      right: 12px;
-      top: 10px;
-      background: transparent;
-      border: none;
+      padding-top: 150px; /* Add padding to body to avoid content being hidden by sticky header */
+      background: #f0f2f5;
       color: #333;
-      font-size: 1.8rem;
-      line-height: 1;
+    }
+    .container {
+      max-width: 95%;
+      margin: 0 auto;
+    }
+    .sticky-header-container {
+        position: fixed; /* Changed to fixed to be relative to viewport */
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px 3%;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1000; /* Ensure it's on top */
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filters, .stats-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    .filter-group {
+        display: flex;
+        gap: 5px;
+        padding: 5px;
+        border: 1px solid #e0e0e0;
+        border-radius: 25px;
+    }
+    .filter-btn, .gen-filter {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        cursor: pointer;
+        background-color: #fff;
+        transition: all 0.2s;
+        border: none;
+    }
+    .filter-btn.active, .gen-filter.active {
+        background-color: #007bff;
+        color: #fff;
+    }
+    #searchInput {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+    }
+    .org-chart-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: auto;
+      padding: 20px 0;
+    }
+    .org-chart, .org-chart ul {
+      display: flex;
+      padding: 0;
+      margin: 0;
+      list-style-type: none;
+      position: relative;
+    }
+    .org-chart ul {
+      margin-top: 50px;
+    }
+    .org-chart li {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 5px; /* Reduced padding */
+      position: relative;
+    }
+    /* Connectors */
+    .org-chart li::before, .org-chart li::after {
+      content: '';
+      position: absolute;
+      background-color: #B0B0B0;
+      z-index: -1;
+    }
+    .org-chart ul > li::before {
+      height: 25px;
+      width: 2px;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .org-chart ul > li::after {
+      width: 100%;
+      height: 2px;
+      top: -25px;
+      left: 0;
+    }
+    .org-chart ul > li:first-child::after {
+      left: 50%;
+      width: 50%;
+    }
+    .org-chart ul > li:last-child::after {
+      right: 50%;
+      width: 50%;
+    }
+    .org-chart li > .capsule ~ ul > li::before {
+      top: -25px;
+    }
+    .org-chart li > .capsule::before {
+        content: '';
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 25px;
+        background-color: #B0B0B0;
+    }
+    .org-chart li > .capsule:only-child::before {
+        display: none; /* Hide connector if no children */
+    }
+    .capsule {
+      padding: 10px 15px;
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
       cursor: pointer;
-      padding: 6px 10px;
+      min-width: 150px;
+      justify-content: center;
+      text-align: center;
+      transition: opacity 0.3s;
     }
-    .modal-avatar {
-      width: 92px; height: 92px;
-      border-radius: 50%;
-      margin: 4px auto 12px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      font-size: 2.6rem;
-      font-weight: 900;
+    .person-details { text-align: center; }
+    .person-details h4 { margin: 0 0 5px 0; font-size: 0.9em; }
+    .spouse-separator {
+      border-left: 2px solid #007bff;
+      align-self: stretch;
+      margin: 0 5px;
     }
-    .modal-title { margin: 0 0 10px; text-align: center; color: #333; }
-    .modal-section {
-      border-top: 1px solid rgba(0,0,0,0.08);
-      padding-top: 12px;
-      margin-top: 12px;
-    }
-    .modal-label {
-      font-size: 0.82rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #667eea;
-      margin-bottom: 8px;
-    }
-    .modal-row { margin: 6px 0; }
-    .relation-link {
-      display: inline-block;
-      margin: 6px 8px 0 0;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(102,126,234,0.15);
-      color: #667eea;
-      cursor: pointer;
-      user-select: none;
-      font-weight: 650;
-    }
-    .relation-link:hover { background: rgba(102,126,234,0.22); }
-    .modal-actions { margin-top: 16px; }
-    .modal-actions button { width: 100%; color: #fff; background: #667eea; border: none; }
-    .modal-actions button:hover { background: #5a6fe3; transform: none; }
-
-    @media (max-width: 768px) {
-      body { padding: 14px; }
-      h1 { font-size: 1.7rem; }
-      .person-card { width: 180px; }
-    }
-
-    .couple-avatars { display:flex; justify-content:center; gap:10px; margin-bottom:8px; }
-
-
   </style>
 </head>
-
 <body>
+  <div class="sticky-header-container">
+    <div class="header">
+      <h2>Vamsha Vruksha</h2>
+      <div class="stats-bar">
+        <span>Total Members: <b id="totalMembers">0</b></span>
+        <span>Generations: <b id="totalGens">0</b></span>
+      </div>
+    </div>
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Search by name...">
+      <div id="gender-filter-container" class="filter-group"></div>
+      <div id="gen-filter-container" class="filter-group"></div>
+    </div>
+  </div>
+
   <div class="container">
-    <header>
-      <h1>Vamsha Vruksha</h1>
-      <p class="subtitle">Kashyapa Gothra Family Tree</p>
-
-      <div class="stats" aria-label="Tree statistics">
-        <div class="stat">
-          <div class="stat-number" id="totalMembers">0</div>
-          <div class="stat-label">Family Members</div>
-        </div>
-        <div class="stat">
-          <div class="stat-number" id="totalGens">0</div>
-          <div class="stat-label">Generations</div>
-        </div>
-        <div class="stat">
-          <div class="stat-number" id="totalMarriages">0</div>
-          <div class="stat-label">Marriages</div>
-        </div>
-      </div>
-    </header>
-
-    <div class="controls">
-      <div class="control-panel">
-        <input id="searchInput" class="search-box" type="text" placeholder="Search family members by name..." />
-      </div>
-
-      <div class="control-panel">
-        <div style="font-weight:700; margin-bottom:10px;">Filter by Generation</div>
-        <div class="btn-row">
-          <button class="gen-filter active" data-gen="all" type="button">All</button>
-          <button class="gen-filter" data-gen="1" type="button">Gen 1</button>
-          <button class="gen-filter" data-gen="5" type="button">Gen 1–5</button>
-          <button class="gen-filter" data-gen="9" type="button">Recent</button>
-        </div>
-      </div>
-
-      <div class="control-panel">
-        <div style="font-weight:700; margin-bottom:10px;">View Options</div>
-        <div class="btn-row">
-          <button id="expandAllBtn" type="button">Expand All</button>
-          <button id="collapseBtn" type="button">Collapse</button>
-          <button id="resetBtn" type="button">Reset View</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="treeContainer" class="tree-container">
-      <div class="empty-state">Loading family tree...</div>
-    </div>
+    <div class="org-chart-container" id="treeContainer"></div>
   </div>
 
-  <!-- Modal -->
-  <div id="detailModal" class="detail-modal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-content">
-      <button class="close-btn" id="closeModalBtn" type="button" aria-label="Close">&times;</button>
-
-      <div class="modal-avatar" id="modalAvatar"></div>
-      <h2 class="modal-title" id="modalName"></h2>
-
-      <div class="modal-section">
-        <div class="modal-label">Basic information</div>
-        <div class="modal-row"><strong>Gender:</strong> <span id="modalGender"></span></div>
-        <div class="modal-row"><strong>Generation:</strong> <span id="modalGen"></span></div>
-      </div>
-
-      <div class="modal-section" id="datesSection" style="display:none;">
-        <div class="modal-label">Dates</div>
-        <div id="datesContent"></div>
-      </div>
-
-      <div class="modal-section" id="spouseSection" style="display:none;">
-        <div class="modal-label">Spouse(s)</div>
-        <div id="spouseLinks"></div>
-      </div>
-
-      <div class="modal-section" id="parentsSection" style="display:none;">
-        <div class="modal-label">Parents</div>
-        <div id="parentLinks"></div>
-      </div>
-
-      <div class="modal-section" id="childrenSection" style="display:none;">
-        <div class="modal-label">Children</div>
-        <div id="childLinks"></div>
-      </div>
-
-      <div class="modal-section" id="notesSection" style="display:none;">
-        <div class="modal-label">Notes</div>
-        <div id="modalNotes"></div>
-      </div>
-
-      <div class="modal-actions">
-        <button id="modalCloseBtnBottom" type="button">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="./app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
