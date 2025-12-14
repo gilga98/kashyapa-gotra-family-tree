@@ -561,8 +561,17 @@
                     peopleMap[person.id] = person;
                 });
                 calculateGenerations();
-                updateStats();
-                renderTree();
+    
+                // Wait for DOM if needed
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        updateStats();
+                        renderTree();
+                    });
+                } else {
+                    updateStats();
+                    renderTree();
+                }
             })
             .catch(error => {
                 console.error('Error loading family tree:', error);
