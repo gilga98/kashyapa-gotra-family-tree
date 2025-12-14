@@ -11,32 +11,35 @@
       margin: 0;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
-      padding-top: 150px; /* Add padding to body to avoid content being hidden by sticky header */
+      padding-top: 160px; /* Space for fixed header */
       background: #f0f2f5;
       color: #333;
     }
-    .container {
-      max-width: 95%;
-      margin: 0 auto;
-    }
     .sticky-header-container {
-        position: fixed; /* Changed to fixed to be relative to viewport */
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        padding: 20px 3%;
+        padding: 15px 3%;
         background: #fff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        z-index: 1000; /* Ensure it's on top */
+        z-index: 1000;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       flex-wrap: wrap;
     }
-    .filters, .stats-bar {
+    .header h2 { margin: 0; color: #4a5568; }
+    .stats-bar {
+        display: flex;
+        gap: 15px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .filters {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
@@ -45,34 +48,45 @@
     .filter-group {
         display: flex;
         gap: 5px;
-        padding: 5px;
+        padding: 4px;
         border: 1px solid #e0e0e0;
-        border-radius: 25px;
+        border-radius: 20px;
+        background: #fafafa;
     }
     .filter-btn, .gen-filter {
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 20px;
-        cursor: pointer;
-        background-color: #fff;
-        transition: all 0.2s;
+        padding: 6px 12px;
         border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        background-color: transparent;
+        transition: all 0.2s;
+        font-size: 0.85rem;
     }
+    .filter-btn:hover, .gen-filter:hover { background-color: #eee; }
     .filter-btn.active, .gen-filter.active {
         background-color: #007bff;
         color: #fff;
+        box-shadow: 0 2px 4px rgba(0,123,255,0.3);
     }
     #searchInput {
-        padding: 8px 12px;
+        padding: 8px 15px;
         border: 1px solid #ccc;
         border-radius: 20px;
+        outline: none;
+        min-width: 200px;
     }
-    .org-chart-container {
+    #resetBtn {
+        background: #ff4757;
+        color: white;
+    }
+
+    /* Org Chart Styles */
+    .container {
+      width: 100%;
+      overflow: auto;
+      padding: 20px;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-x: auto;
-      padding: 20px 0;
+      justify-content: center;
     }
     .org-chart, .org-chart ul {
       display: flex;
@@ -81,84 +95,181 @@
       list-style-type: none;
       position: relative;
     }
-    .org-chart ul {
-      margin-top: 50px;
-    }
+    .org-chart ul { margin-top: 40px; }
     .org-chart li {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 5px; /* Reduced padding */
+      padding: 0 5px;
       position: relative;
     }
     /* Connectors */
     .org-chart li::before, .org-chart li::after {
       content: '';
       position: absolute;
-      background-color: #B0B0B0;
+      background-color: #ccc;
       z-index: -1;
     }
+    /* Vertical line above */
     .org-chart ul > li::before {
-      height: 25px;
+      height: 20px;
       width: 2px;
-      top: -25px;
+      top: -20px;
       left: 50%;
       transform: translateX(-50%);
     }
+    /* Horizontal connector line */
     .org-chart ul > li::after {
       width: 100%;
       height: 2px;
-      top: -25px;
+      top: -20px;
       left: 0;
     }
-    .org-chart ul > li:first-child::after {
-      left: 50%;
-      width: 50%;
-    }
-    .org-chart ul > li:last-child::after {
-      right: 50%;
-      width: 50%;
-    }
-    .org-chart li > .capsule ~ ul > li::before {
-      top: -25px;
-    }
-    .org-chart li > .capsule::before {
+    .org-chart ul > li:first-child::after { left: 50%; width: 50%; }
+    .org-chart ul > li:last-child::after { right: 50%; width: 50%; }
+    .org-chart ul > li:only-child::after { display: none; }
+    .org-chart ul > li:only-child::before { display: block; } /* Keep vertical line for only child */
+
+    /* Vertical line below parent */
+    .org-chart li > .capsule::after {
         content: '';
         position: absolute;
-        bottom: -25px;
+        bottom: -20px;
         left: 50%;
         transform: translateX(-50%);
         width: 2px;
-        height: 25px;
-        background-color: #B0B0B0;
+        height: 20px;
+        background-color: #ccc;
     }
-    .org-chart li > .capsule:only-child::before {
-        display: none; /* Hide connector if no children */
-    }
+    /* Hide vertical line below if no children */
+    .org-chart li > .capsule:only-child::after { display: none; }
+
     .capsule {
-      padding: 10px 15px;
-      background: #ffffff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      background: #fff;
+      border: 1px solid #e1e4e8;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0; /* Spacing handled by padding of children */
       position: relative;
-      cursor: pointer;
-      min-width: 150px;
-      justify-content: center;
-      text-align: center;
-      transition: opacity 0.3s;
+      transition: all 0.2s;
+      z-index: 2;
     }
-    .person-details { text-align: center; }
-    .person-details h4 { margin: 0 0 5px 0; font-size: 0.9em; }
+    .capsule:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        border-color: #007bff;
+    }
+    .person-details { 
+        padding: 12px 18px; 
+        text-align: center; 
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    .person-details:hover { background-color: #f8f9fa; }
+    .person-details h4 { margin: 0; font-size: 0.95rem; font-weight: 600; color: #2d3748; }
     .spouse-separator {
-      border-left: 2px solid #007bff;
-      align-self: stretch;
-      margin: 0 5px;
+      width: 1px;
+      height: 30px;
+      background: #e1e4e8;
+      margin: 0 2px;
     }
+
+    /* Modal */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 2000; 
+      left: 0; top: 0; width: 100%; height: 100%; 
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background-color: #fefefe;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      animation: modalSlideIn 0.3s ease-out;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+    @keyframes modalSlideIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      background: #f8f9fa;
+      border-radius: 16px 16px 0 0;
+    }
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover { color: #000; }
+    .modal-avatar {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+    .modal-header h2 { margin: 0; color: #1a202c; }
+    .modal-header p { margin: 5px 0 0; color: #718096; font-size: 0.9rem; }
+    .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+    }
+    .info-section { margin-bottom: 20px; }
+    .info-section h4 { 
+        margin: 0 0 8px 0; 
+        color: #4a5568; 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 4px;
+    }
+    .info-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .info-tag {
+        background: #edf2f7;
+        color: #2d3748;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .info-tag:hover { background: #e2e8f0; }
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+    .btn-close {
+        padding: 8px 20px;
+        background: #cbd5e0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    .btn-close:hover { background: #a0aec0; }
   </style>
 </head>
 <body>
@@ -174,6 +285,7 @@
       <input type="text" id="searchInput" placeholder="Search by name...">
       <div id="gender-filter-container" class="filter-group"></div>
       <div id="gen-filter-container" class="filter-group"></div>
+      <button id="resetBtn" class="filter-btn">Reset</button>
     </div>
   </div>
 
@@ -181,6 +293,44 @@
     <div class="org-chart-container" id="treeContainer"></div>
   </div>
 
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModalBtn" class="close">&times;</span>
+      <div class="modal-header">
+        <div id="modalAvatar" class="modal-avatar"></div>
+        <h2 id="modalName"></h2>
+        <p><span id="modalGender"></span> • Generation <span id="modalGen"></span></p>
+      </div>
+      <div class="modal-body">
+        <div id="datesSection" class="info-section">
+            <h4>Dates</h4>
+            <p id="datesContent"></p>
+        </div>
+        <div id="spouseSection" class="info-section">
+            <h4>Spouse(s)</h4>
+            <div id="spouseLinks" class="info-tags"></div>
+        </div>
+        <div id="parentsSection" class="info-section">
+            <h4>Parents</h4>
+            <div id="parentLinks" class="info-tags"></div>
+        </div>
+        <div id="childrenSection" class="info-section">
+            <h4>Children</h4>
+            <div id="childLinks" class="info-tags"></div>
+        </div>
+        <div id="notesSection" class="info-section">
+            <h4>Notes</h4>
+            <p id="modalNotes"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modalCloseBtnBottom" class="btn-close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
+
