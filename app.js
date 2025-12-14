@@ -8,6 +8,7 @@
  * - Builds "display units": single-person or couple (1-to-1 pair)
  * - Renders units grouped by unit.generation
  */
+let orgChart = null;
 
 // -------------------- State --------------------
 let treeData = null;
@@ -60,8 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
   wireUI();
   loadTree();
   
-  // Initialize SVG connector system
-  treeConnector = new TreeConnector('#treeContainer');
+    // Initialize org chart layout
+    try {
+      orgChart = new OrgChartLayout('#treeContainer');
+      console.log('✓ Org chart initialized');
+    } catch (err) {
+      console.warn('⚠ Org chart init failed:', err.message);
+    }
 });
 
 
@@ -349,10 +355,14 @@ function renderTree(searchTerm = '') {
   }
   els.treeContainer.appendChild(frag);
 
-  // UPDATE: Render SVG connectors
-  if (treeConnector) {
-    treeConnector.updateConnectors(peopleMap);
+// REPLACE the old connector call with this:
+if (orgChart && treeData && treeData.people.length > 0) {
+  try {
+    orgChart.updateChart(peopleMap, treeData);
+  } catch (err) {
+    console.warn('⚠ Failed to render org chart:', err.message);
   }
+}
 }
 
 function passesGenFilter(gen) {
