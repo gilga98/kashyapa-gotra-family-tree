@@ -1,292 +1,343 @@
-// ============================================
-// org-chart.js - Hierarchical Family Tree Layout
-// ============================================
-// Renders family tree as proper organizational chart
-// with hierarchical positioning and connection lines
+// org-chart.js - Pure organizational chart layout engine
+// No dependencies, works with any family tree data
 
-'use strict';
-
-class OrgChartLayout {
-  constructor(treeContainerSelector) {
-    this.container = document.querySelector(treeContainerSelector);
-    this.svgElement = null;
-    this.ns = 'http://www.w3.org/2000/svg';
-    this.isMobile = window.innerWidth < 768;
-    
-    // Chart dimensions and spacing
-    this.nodeWidth = this.isMobile ? 160 : 220;
-    this.nodeHeight = 120;
-    this.verticalGap = this.isMobile ? 80 : 120;
-    this.horizontalGap = this.isMobile ? 40 : 60;
+class OrgChart {
+  constructor(treeData) {
+    this.treeData = treeData;
+    this.peopleMap = new Map();
+    this.positions = new Map();
     
     // Configuration
-    this.lineColor = 'rgba(255, 255, 255, 0.35)';
-    this.lineColorHover = 'rgba(255, 255, 255, 0.7)';
-    this.lineWidth = this.isMobile ? 1.5 : 2;
-    
-    // Cache
-    this.positions = new Map(); // personId -> {x, y, width, height}
-    this.rootNodes = [];
+    this.nodeWidth = window.innerWidth < 768 ? 140 : 200;
+    this.nodeHeight = 100;
+    this.verticalGap = window.innerWidth < 768 ? 60 : 100;
+    this.horizontalGap = window.innerWidth < 768 ? 30 : 50;
     
     this.init();
-    this.setupResizeHandler();
   }
 
   init() {
-    if (this.svgElement) this.svgElement.remove();
-    
-    this.svgElement = document.createElementNS(this.ns, 'svg');
-    this.svgElement.setAttribute('class', 'org-chart-svg');
-    this.svgElement.setAttribute('aria-label', 'Organizational family tree chart');
-    
-    // Full viewport SVG
-    Object.assign(this.svgElement.style, {
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-      zIndex: '0'
-    });
-    
-    // Add defs for markers
-    const defs = document.createElementNS(this.ns, 'defs');
-    
-    const marker = document.createElementNS(this.ns, 'marker');
-    marker.setAttribute('id', 'arrowhead-org');
-    marker.setAttribute('markerWidth', '10');
-    marker.setAttribute('markerHeight', '10');
-    marker.setAttribute('refX', '5');
-    marker.setAttribute('refY', '5');
-    marker.setAttribute('orient', 'auto');
-    
-    const polygon = document.createElementNS(this.ns, 'polygon');
-    polygon.setAttribute('points', '0 0, 10 5, 0 10');
-    polygon.setAttribute('fill', this.lineColor);
-    
-    marker.appendChild(polygon);
-    defs.appendChild(marker);
-    this.svgElement.appendChild(defs);
-    
-    this.container.style.position = 'relative';
-    this.container.appendChild(this.svgElement);
-  }
-
-  setupResizeHandler() {
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        const wasMobile = this.isMobile;
-        this.isMobile = window.innerWidth < 768;
-        
-        if (wasMobile !== this.isMobile) {
-          this.nodeWidth = this.isMobile ? 160 : 220;
-          this.verticalGap = this.isMobile ? 80 : 120;
-          this.horizontalGap = this.isMobile ? 40 : 60;
-          this.init();
-        }
-        
-        this.render();
-      }, 250);
-    });
+    // Build people map
+    if (this.treeData && this.treeData.people) {
+      for (const person of this.treeData.people) {
+        this.peopleMap.set(person.id, person);
+      }
+    }
   }
 
   /**
-   * Main render function
-   * Expects DOM to already have cards with data-person-id
+   * Calculate positions for all people in hierarchical layout
    */
-  render(peopleMap, treeData) {
-    if (!treeData || !treeData.people || treeData.people.length === 0) return;
-    
-    // Clear existing paths
-    const paths = this.svgElement.querySelectorAll('path');
-    paths.forEach(p => p.remove());
-    
-    // Find root nodes (generation 1)
-    const roots = treeData.people.filter(p => (p.generation || 1) === 1);
-    
-    // Calculate positions for all nodes
+  calculatePositions() {
     this.positions.clear();
-    this.calculatePositions(roots, treeData.people, peopleMap);
     
-    // Update SVG dimensions
-    const maxY = Math.max(...Array.from(this.positions.values()).map(p => p.y + this.nodeHeight));
-    const maxX = Math.max(...Array.from(this.positions.values()).map(p => p.x + this.nodeWidth));
-    
-    const padding = 40;
-    const totalWidth = maxX + padding * 2;
-    const totalHeight = maxY + padding * 2;
-    
-    const rect = this.container.getBoundingClientRect();
-    this.svgElement.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
-    this.svgElement.setAttribute('width', rect.width);
-    this.svgElement.setAttribute('height', totalHeight);
-    
-    // Reposition cards based on calculated positions
-    this.repositionCards(peopleMap);
-    
-    // Draw connection lines
-    this.drawConnections(treeData.people, peopleMap);
-  }
+    if (!this.treeData || !this.treeData.people) return;
 
-  /**
-   * Calculate hierarchical positions using tree layout algorithm
-   */
-  calculatePositions(roots, allPeople, peopleMap, x = 0, y = 0, parentX = null) {
-    if (!roots || roots.length === 0) return;
+    // Find root nodes (Generation 1)
+    const roots = this.treeData.people.filter(p => (p.generation || 1) === 1);
     
-    let currentX = x;
+    if (roots.length === 0) return;
+
+    // Calculate positions recursively
+    let maxX = 0;
+    let currentX = 0;
     
-    for (const person of roots) {
-      // Get children
-      const childIds = person.children || [];
-      const children = childIds
-        .map(id => peopleMap.get(id))
-        .filter(child => child && !this.positions.has(child.id));
-      
-      // Position current node
-      const nodeX = currentX;
-      const nodeY = y;
-      
-      this.positions.set(person.id, {
-        x: nodeX,
-        y: nodeY,
-        width: this.nodeWidth,
-        height: this.nodeHeight,
-        person: person
-      });
-      
-      // Move to next sibling position
+    for (const root of roots) {
+      currentX = this.positionNode(root, currentX, 0);
       currentX += this.nodeWidth + this.horizontalGap;
-      
-      // Recursively position children
-      if (children.length > 0) {
-        const childStartX = nodeX - ((children.length - 1) * (this.nodeWidth + this.horizontalGap)) / 2;
-        this.calculatePositions(children, allPeople, peopleMap, childStartX, nodeY + this.nodeHeight + this.verticalGap);
-      }
     }
   }
 
   /**
-   * Reposition DOM cards to match calculated positions
+   * Position a node and all its descendants
    */
-  repositionCards(peopleMap) {
-    const cards = this.container.querySelectorAll('[data-person-id]');
-    
-    for (const card of cards) {
-      const personId = card.getAttribute('data-person-id');
-      const pos = this.positions.get(personId);
-      
-      if (pos) {
-        Object.assign(card.style, {
-          position: 'absolute',
-          left: pos.x + 'px',
-          top: pos.y + 'px',
-          zIndex: '10'
-        });
-        
-        // Store position for connector drawing
-        card.dataset.x = pos.x + pos.width / 2;
-        card.dataset.y = pos.y + pos.height / 2;
-      }
-    }
-  }
+  positionNode(person, x, y) {
+    if (this.positions.has(person.id)) return x;
 
-  /**
-   * Draw connection lines between parent and child nodes
-   */
-  drawConnections(allPeople, peopleMap) {
-    const drawnLines = new Set();
-    
-    for (const person of allPeople) {
-      const parentPos = this.positions.get(person.id);
-      if (!parentPos) continue;
-      
-      const children = (person.children || [])
-        .map(id => peopleMap.get(id))
-        .filter(Boolean);
-      
-      if (children.length === 0) continue;
-      
-      // Draw connection from parent down
-      const parentCenterX = parentPos.x + this.nodeWidth / 2;
-      const parentBottomY = parentPos.y + this.nodeHeight;
-      
+    // Get children
+    const children = (person.children || [])
+      .map(id => this.peopleMap.get(id))
+      .filter(c => c && !this.positions.has(c.id));
+
+    let nodeX = x;
+    let childStartX = x;
+
+    // If has children, position them first to center under parent
+    if (children.length > 0) {
+      let childWidth = 0;
       for (const child of children) {
-        const childPos = this.positions.get(child.id);
+        childWidth += this.nodeWidth + this.horizontalGap;
+      }
+      childWidth -= this.horizontalGap;
+
+      // Center children under parent
+      childStartX = x - (childWidth - this.nodeWidth) / 2;
+      
+      // Position children
+      let currentChildX = childStartX;
+      for (const child of children) {
+        currentChildX = this.positionNode(
+          child, 
+          currentChildX, 
+          y + this.nodeHeight + this.verticalGap
+        );
+        currentChildX += this.nodeWidth + this.horizontalGap;
+      }
+
+      nodeX = x;
+    }
+
+    // Store position
+    this.positions.set(person.id, {
+      x: nodeX,
+      y: y,
+      person: person,
+      children: children
+    });
+
+    return x + this.nodeWidth + this.horizontalGap;
+  }
+
+  /**
+   * Render the org chart
+   */
+  render() {
+    this.calculatePositions();
+    
+    const wrapper = document.getElementById('treeWrapper');
+    const container = document.getElementById('nodesContainer');
+    const svg = document.getElementById('chartSvg');
+    
+    if (!wrapper || !container) return;
+
+    // Clear previous nodes
+    container.innerHTML = '';
+    svg.innerHTML = '';
+
+    if (this.positions.size === 0) return;
+
+    // Calculate SVG dimensions
+    let maxX = 0, maxY = 0;
+    for (const [, pos] of this.positions) {
+      maxX = Math.max(maxX, pos.x + this.nodeWidth);
+      maxY = Math.max(maxY, pos.y + this.nodeHeight);
+    }
+
+    const padding = 40;
+    const totalWidth = maxX + padding;
+    const totalHeight = maxY + padding;
+
+    svg.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
+    svg.setAttribute('width', totalWidth);
+    svg.setAttribute('height', totalHeight);
+
+    // Render nodes
+    for (const [personId, pos] of this.positions) {
+      this.renderNode(personId, pos, container);
+    }
+
+    // Draw connection lines
+    this.drawConnections(svg);
+  }
+
+  /**
+   * Render a single node
+   */
+  renderNode(personId, pos, container) {
+    const person = this.peopleMap.get(personId);
+    if (!person) return;
+
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'node';
+    nodeDiv.setAttribute('data-id', personId);
+    nodeDiv.style.left = pos.x + 'px';
+    nodeDiv.style.top = pos.y + 'px';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.setAttribute('data-name', person.name || 'Unknown');
+
+    // Avatar
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = person.gender === 'male' ? '♂' : 
+                        person.gender === 'female' ? '♀' : '•';
+
+    // Name
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = (person.name || 'Unknown').substring(0, 20);
+
+    // Children count
+    const childCount = (person.children || []).length;
+    const children = document.createElement('div');
+    children.className = 'children-count';
+    children.textContent = childCount ? `${childCount} child${childCount > 1 ? 'ren' : ''}` : '—';
+
+    card.appendChild(avatar);
+    card.appendChild(name);
+    card.appendChild(children);
+
+    // Hover effect
+    card.addEventListener('mouseenter', () => {
+      card.classList.add('highlight');
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.classList.remove('highlight');
+    });
+
+    nodeDiv.appendChild(card);
+    container.appendChild(nodeDiv);
+  }
+
+  /**
+   * Draw L-shaped connection lines
+   */
+  drawConnections(svg) {
+    const drawnLines = new Set();
+
+    for (const [personId, pos] of this.positions) {
+      const children = (this.treeData?.people || [])
+        .find(p => p.id === personId)?.children || [];
+
+      if (children.length === 0) continue;
+
+      for (const childId of children) {
+        const childPos = this.positions.get(childId);
         if (!childPos) continue;
-        
-        const key = `${person.id}__${child.id}`;
+
+        const key = `${personId}__${childId}`;
         if (drawnLines.has(key)) continue;
         drawnLines.add(key);
-        
-        const childCenterX = childPos.x + this.nodeWidth / 2;
-        const childTopY = childPos.y;
-        
-        // Draw vertical line down, then horizontal, then vertical up
-        const midY = parentBottomY + (childTopY - parentBottomY) / 2;
-        
-        const path = document.createElementNS(this.ns, 'path');
+
+        // Calculate path
+        const parentX = pos.x + this.nodeWidth / 2;
+        const parentY = pos.y + this.nodeHeight;
+        const childX = childPos.x + this.nodeWidth / 2;
+        const childY = childPos.y;
+        const midY = parentY + (childY - parentY) / 2;
+
+        // Create path
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         const d = `
-          M ${parentCenterX} ${parentBottomY}
-          L ${parentCenterX} ${midY}
-          L ${childCenterX} ${midY}
-          L ${childCenterX} ${childTopY}
+          M ${parentX} ${parentY}
+          L ${parentX} ${midY}
+          L ${childX} ${midY}
+          L ${childX} ${childY}
         `;
-        
+
         path.setAttribute('d', d);
         path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', this.lineColor);
-        path.setAttribute('stroke-width', this.lineWidth);
+        path.setAttribute('stroke', 'rgba(255, 255, 255, 0.3)');
+        path.setAttribute('stroke-width', window.innerWidth < 768 ? '1' : '1.5');
         path.setAttribute('stroke-linecap', 'round');
         path.setAttribute('stroke-linejoin', 'round');
-        
-        path.style.cursor = 'pointer';
-        path.style.transition = `stroke ${300}ms ease`;
-        
+
         // Hover effect
         path.addEventListener('mouseenter', () => {
-          path.setAttribute('stroke', this.lineColorHover);
-          path.setAttribute('stroke-width', this.lineWidth + 0.5);
+          path.setAttribute('stroke', 'rgba(255, 215, 0, 0.6)');
           
-          // Highlight related cards
-          const pCard = this.container.querySelector(`[data-person-id="${person.id}"]`);
-          const cCard = this.container.querySelector(`[data-person-id="${child.id}"]`);
+          const parentNode = document.querySelector(`[data-id="${personId}"] .card`);
+          const childNode = document.querySelector(`[data-id="${childId}"] .card`);
           
-          if (pCard) pCard.classList.add('org-highlight');
-          if (cCard) cCard.classList.add('org-highlight');
+          if (parentNode) parentNode.classList.add('highlight');
+          if (childNode) childNode.classList.add('highlight');
         });
-        
+
         path.addEventListener('mouseleave', () => {
-          path.setAttribute('stroke', this.lineColor);
-          path.setAttribute('stroke-width', this.lineWidth);
+          path.setAttribute('stroke', 'rgba(255, 255, 255, 0.3)');
           
-          const pCard = this.container.querySelector(`[data-person-id="${person.id}"]`);
-          const cCard = this.container.querySelector(`[data-person-id="${child.id}"]`);
+          const parentNode = document.querySelector(`[data-id="${personId}"] .card`);
+          const childNode = document.querySelector(`[data-id="${childId}"] .card`);
           
-          if (pCard) pCard.classList.remove('org-highlight');
-          if (cCard) cCard.classList.remove('org-highlight');
+          if (parentNode) parentNode.classList.remove('highlight');
+          if (childNode) childNode.classList.remove('highlight');
         });
-        
-        this.svgElement.appendChild(path);
+
+        svg.appendChild(path);
       }
     }
   }
+}
 
-  /**
-   * Public API: Update chart layout
-   */
-  updateChart(peopleMap, treeData) {
-    if (typeof window.peopleMap !== 'undefined') {
-      window.peopleMap = peopleMap;
-    }
-    this.render(peopleMap, treeData);
+// Global instance
+let orgChart = null;
+
+/**
+ * Initialize org chart with data
+ */
+function initChart(treeData) {
+  orgChart = new OrgChart(treeData);
+  orgChart.render();
+}
+
+/**
+ * Reset view to show all
+ */
+function resetView() {
+  if (orgChart) {
+    orgChart.render();
   }
 }
 
-// Export for use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = OrgChartLayout;
+/**
+ * Expand all nodes
+ */
+function expandAll() {
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    card.style.transform = 'scale(1.05)';
+  });
 }
+
+/**
+ * Search function
+ */
+function searchPeople(query) {
+  const cards = document.querySelectorAll('.card');
+  const lowerQuery = query.toLowerCase();
+
+  cards.forEach(card => {
+    const name = card.getAttribute('data-name') || '';
+    if (name.toLowerCase().includes(lowerQuery)) {
+      card.style.opacity = '1';
+      card.parentElement.style.opacity = '1';
+    } else {
+      card.style.opacity = '0.3';
+      card.parentElement.style.opacity = '0.3';
+    }
+  });
+
+  if (query === '') {
+    cards.forEach(card => {
+      card.style.opacity = '1';
+      card.parentElement.style.opacity = '1';
+    });
+  }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchPeople(e.target.value);
+    });
+  }
+
+  // Load and render tree
+  if (typeof FAMILY_TREE_DATA !== 'undefined') {
+    initChart(FAMILY_TREE_DATA);
+  }
+});
+
+// Handle resize
+window.addEventListener('resize', () => {
+  if (orgChart) {
+    orgChart.nodeWidth = window.innerWidth < 768 ? 140 : 200;
+    orgChart.verticalGap = window.innerWidth < 768 ? 60 : 100;
+    orgChart.horizontalGap = window.innerWidth < 768 ? 30 : 50;
+    orgChart.render();
+  }
+});
