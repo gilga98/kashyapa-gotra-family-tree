@@ -62,12 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTree();
   
     // Initialize org chart layout
-    try {
-      orgChart = new OrgChartLayout('#treeContainer');
-      console.log('✓ Org chart initialized');
-    } catch (err) {
-      console.warn('⚠ Org chart init failed:', err.message);
-    }
+     // Initialize org chart
+  try {
+    orgChart = new OrgChartEnhanced('#treeContainer', { peopleMap: null, treeData: null });
+    console.log('✓ Org chart initialized');
+  } catch (err) {
+    console.warn('⚠ Org chart failed:', err.message);
+  }
 });
 
 
@@ -360,7 +361,7 @@ if (orgChart && treeData && treeData.people.length > 0) {
   try {
     orgChart.updateChart(peopleMap, treeData);
   } catch (err) {
-    console.warn('⚠ Failed to render org chart:', err.message);
+    console.warn('⚠ Org chart render failed:', err.message);
   }
 }
 }
