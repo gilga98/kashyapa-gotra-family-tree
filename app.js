@@ -13,6 +13,9 @@
 let treeData = null;
 const peopleMap = new Map();
 let currentFilter = 'all';
+// Global connector instance
+let treeConnector = null;
+
 
 // -------------------- DOM --------------------
 const els = {
@@ -56,7 +59,11 @@ const els = {
 document.addEventListener('DOMContentLoaded', () => {
   wireUI();
   loadTree();
+  
+  // Initialize SVG connector system
+  treeConnector = new TreeConnector('#treeContainer');
 });
+
 
 function wireUI() {
   // Search
@@ -341,6 +348,11 @@ function renderTree(searchTerm = '') {
     return;
   }
   els.treeContainer.appendChild(frag);
+
+  // UPDATE: Render SVG connectors
+  if (treeConnector) {
+    treeConnector.updateConnectors(peopleMap);
+  }
 }
 
 function passesGenFilter(gen) {
@@ -355,6 +367,7 @@ function passesGenFilter(gen) {
 function createPersonCard(person, term) {
   const card = document.createElement('div');
   card.className = 'person-card';
+  card.setAttribute('data-person-id', person.id);
 
   const nameLower = (person.name || '').toLowerCase();
 
@@ -404,6 +417,7 @@ function createPersonCard(person, term) {
 function createCoupleCard(a, b, term) {
   const card = document.createElement('div');
   card.className = 'person-card';
+  card.setAttribute('data-person-id', a.id);
 
   const bothNames = `${a.name || ''} ${b.name || ''}`.toLowerCase();
   if (term && bothNames.includes(term)) card.classList.add('highlight');
