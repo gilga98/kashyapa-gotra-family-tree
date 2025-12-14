@@ -113,6 +113,8 @@ async function loadTree() {
     treeData = normalizeData(data);
     indexPeople(treeData.people);
     assignGenerations(treeData.people);
+    
+    propagateSpouseGenerations(treeData.people);
 
     updateStats();
     renderTree('');
@@ -389,3 +391,78 @@ function closeModal() {
   els.modal.classList.remove('active');
   els.modal.setAttribute('aria-hidden', 'true');
 }
+
+function propagateSpouseGenerations(people) {
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (const p of people) {
+      const pg = p.generation || 1;
+      for (const sid of (p.spouses || [])) {
+        const s = peopleMap.get(sid);
+        if (!s) continue;
+
+        const sg = s.generation || 1;
+        const g = Math.max(pg, sg);
+
+        if (p.generation !== g) { p.generation = g; changed = true; }
+        if (s.generation !== g) { s.generation = g; changed = true; }
+      }
+    }
+  }
+}
+
+function buildDisplayUnits(people) {
+  const used = new Set();
+  const units = [];
+
+  for (const p of people) {
+    if (used.has(p.id)) continue;
+
+    // Combine only if it's a clean 1-to-1 pair (prevents weirdness with multiple spouses)
+    if (p.spouses?.length === 1) {
+      const s = peopleMap.get(p.spouses[0]);
+      const isPair =
+        s &&
+        !used.has(s.id) &&
+        s.spouses?.length === 1 &&
+        s.spouses[0] === p.id;
+
+      if (isPair) {
+        const gen = Math.max(p.generation || 1, s.generation || 1);
+        units.push({ type: 'couple', a: p, b: s, generation: gen });
+        used.add(p.id);
+        used.add(s.id);
+        continue;
+      }
+    }
+
+    units.push({ type: 'single', p, generation: p.generation || 1 });
+    used.add(p.id);
+  }
+
+  return units;
+}
+
+function createCoupleCard(a, b, term) {
+  const card = document.createElement('div');
+  card.className = 'person-card';
+
+  const bothNames = `${a.name || ''} ${b.name || ''}`.toLowerCase();
+  if (term && bothNames.includes(term)) card.classList.add('highlight');
+
+  card.addEventListener('click', () => showDetails(a.id)); // open one partner; spouse link already exists
+
+  card.innerHTML = `
+    <div class="couple-avatars">
+      <div class="person-avatar">${genderIcon(a.gender)}</div>
+      <div class="person-avatar">${genderIcon(b.gender)}</div>
+    </div>
+    <div class="person-name">${(a.name || '(Unnamed)')} & ${(b.name || '(Unnamed)')}</div>
+    <div class="person-details">${Math.max(a.children?.length || 0, b.children?.length || 0)} children listed</div>
+  `;
+  return card;
+}
+
