@@ -1,336 +1,345 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vamsha Vruksha - Family Tree</title>
+
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
-      padding-top: 160px; /* Space for fixed header */
-      background: #f0f2f5;
-      color: #333;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    .sticky-header-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        padding: 15px 3%;
-        background: #fff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        z-index: 1000;
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    header {
+      color: #fff;
+      text-align: center;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     }
-    .header {
+    h1 { margin: 0 0 6px; font-size: 2.2rem; }
+    .subtitle { margin: 0; opacity: 0.9; }
+
+    .stats {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
       flex-wrap: wrap;
     }
-    .header h2 { margin: 0; color: #4a5568; }
-    .stats-bar {
-        display: flex;
-        gap: 15px;
-        font-size: 0.9rem;
-        color: #666;
-    }
-    .filters {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-    }
-    .filter-group {
-        display: flex;
-        gap: 5px;
-        padding: 4px;
-        border: 1px solid #e0e0e0;
-        border-radius: 20px;
-        background: #fafafa;
-    }
-    .filter-btn, .gen-filter {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 15px;
-        cursor: pointer;
-        background-color: transparent;
-        transition: all 0.2s;
-        font-size: 0.85rem;
-    }
-    .filter-btn:hover, .gen-filter:hover { background-color: #eee; }
-    .filter-btn.active, .gen-filter.active {
-        background-color: #007bff;
-        color: #fff;
-        box-shadow: 0 2px 4px rgba(0,123,255,0.3);
-    }
-    #searchInput {
-        padding: 8px 15px;
-        border: 1px solid #ccc;
-        border-radius: 20px;
-        outline: none;
-        min-width: 200px;
-    }
-    #resetBtn {
-        background: #ff4757;
-        color: white;
+    .stat { min-width: 160px; }
+    .stat-number { font-size: 1.6rem; font-weight: 800; }
+    .stat-label { opacity: 0.85; font-size: 0.9rem; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
     }
 
-    /* Org Chart Styles */
-    .container {
+    .control-panel {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 15px;
+      padding: 14px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+      color: #fff;
+    }
+
+    .search-box {
       width: 100%;
-      overflow: auto;
-      padding: 20px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.25);
+      outline: none;
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      font-size: 1rem;
+    }
+    .search-box::placeholder { color: rgba(255,255,255,0.65); }
+    .search-box:focus { border-color: rgba(255,255,255,0.55); }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 650;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    button:hover { transform: translateY(-1px); background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.40); }
+    button.active { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.70); }
+
+    .tree-container {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 20px;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+      overflow-x: auto;
+      min-height: 320px;
+      color: #fff;
+    }
+
+    .generation {
       display: flex;
       justify-content: center;
-    }
-    .org-chart, .org-chart ul {
-      display: flex;
-      padding: 0;
-      margin: 0;
-      list-style-type: none;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
       position: relative;
+      padding-top: 16px;
     }
-    .org-chart ul { margin-top: 40px; }
-    .org-chart li {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 5px;
-      position: relative;
-    }
-    /* Connectors */
-    .org-chart li::before, .org-chart li::after {
-      content: '';
+    .gen-label {
       position: absolute;
-      background-color: #ccc;
-      z-index: -1;
+      top: -6px;
+      left: 10px;
+      background: rgba(255,255,255,0.18);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 700;
     }
-    /* Vertical line above */
-    .org-chart ul > li::before {
-      height: 20px;
-      width: 2px;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    /* Horizontal connector line */
-    .org-chart ul > li::after {
-      width: 100%;
-      height: 2px;
-      top: -20px;
-      left: 0;
-    }
-    .org-chart ul > li:first-child::after { left: 50%; width: 50%; }
-    .org-chart ul > li:last-child::after { right: 50%; width: 50%; }
-    .org-chart ul > li:only-child::after { display: none; }
-    .org-chart ul > li:only-child::before { display: block; } /* Keep vertical line for only child */
 
-    /* Vertical line below parent */
-    .org-chart li > .capsule::after {
-        content: '';
-        position: absolute;
-        bottom: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 2px;
-        height: 20px;
-        background-color: #ccc;
+    .person-card {
+      width: 220px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,255,255,0.20);
+      background: rgba(255,255,255,0.14);
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      user-select: none;
     }
-    /* Hide vertical line below if no children */
-    .org-chart li > .capsule:only-child::after { display: none; }
+    .person-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); }
+    .person-card.highlight { border-color: rgba(255,215,0,0.7); box-shadow: 0 0 22px rgba(255,215,0,0.25); }
 
-    .capsule {
-      background: #fff;
-      border: 1px solid #e1e4e8;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      display: flex;
-      align-items: center;
-      gap: 0; /* Spacing handled by padding of children */
-      position: relative;
-      transition: all 0.2s;
-      z-index: 2;
+    .person-avatar {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      margin: 0 auto 8px;
+      display: grid;
+      place-items: center;
+      border: 2px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.18);
+      font-size: 1.6rem;
     }
-    .capsule:hover {
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-        transform: translateY(-2px);
-        border-color: #007bff;
+    .person-name { text-align: center; font-weight: 800; margin-bottom: 6px; }
+    .person-details { text-align: center; font-size: 0.9rem; opacity: 0.92; }
+    .spouse-tag {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(255,105,180,0.25);
+      font-size: 0.78rem;
     }
-    .person-details { 
-        padding: 12px 18px; 
-        text-align: center; 
-        cursor: pointer;
-        border-radius: 8px;
-        transition: background 0.2s;
-    }
-    .person-details:hover { background-color: #f8f9fa; }
-    .person-details h4 { margin: 0; font-size: 0.95rem; font-weight: 600; color: #2d3748; }
-    .spouse-separator {
-      width: 1px;
-      height: 30px;
-      background: #e1e4e8;
-      margin: 0 2px;
-    }
+
+    .empty-state { text-align: center; opacity: 0.8; padding: 46px 10px; }
 
     /* Modal */
-    .modal {
-      display: none; 
-      position: fixed; 
-      z-index: 2000; 
-      left: 0; top: 0; width: 100%; height: 100%; 
-      background-color: rgba(0,0,0,0.5);
-      backdrop-filter: blur(4px);
+    .detail-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
       align-items: center;
       justify-content: center;
+      background: rgba(0,0,0,0.70);
+      z-index: 999;
+      padding: 16px;
     }
-    .modal.active { display: flex; }
+    .detail-modal.active { display: flex; }
+
     .modal-content {
-      background-color: #fefefe;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      animation: modalSlideIn 0.3s ease-out;
-      display: flex;
-      flex-direction: column;
-      max-height: 90vh;
-    }
-    @keyframes modalSlideIn {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-    .modal-header {
-      padding: 20px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      width: min(560px, 96vw);
+      max-height: 82vh;
+      overflow: auto;
+      background: rgba(255,255,255,0.96);
+      color: #222;
+      border-radius: 18px;
+      padding: 22px;
       position: relative;
-      background: #f8f9fa;
-      border-radius: 16px 16px 0 0;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
     }
-    .close {
+    .close-btn {
       position: absolute;
-      right: 20px;
-      top: 15px;
-      color: #aaa;
-      font-size: 28px;
-      font-weight: bold;
+      right: 12px;
+      top: 10px;
+      background: transparent;
+      border: none;
+      color: #333;
+      font-size: 1.8rem;
+      line-height: 1;
       cursor: pointer;
+      padding: 6px 10px;
     }
-    .close:hover { color: #000; }
     .modal-avatar {
-        font-size: 3rem;
-        margin-bottom: 10px;
+      width: 92px; height: 92px;
+      border-radius: 50%;
+      margin: 4px auto 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 2.6rem;
+      font-weight: 900;
     }
-    .modal-header h2 { margin: 0; color: #1a202c; }
-    .modal-header p { margin: 5px 0 0; color: #718096; font-size: 0.9rem; }
-    .modal-body {
-        padding: 20px;
-        overflow-y: auto;
+    .modal-title { margin: 0 0 10px; text-align: center; color: #333; }
+    .modal-section {
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding-top: 12px;
+      margin-top: 12px;
     }
-    .info-section { margin-bottom: 20px; }
-    .info-section h4 { 
-        margin: 0 0 8px 0; 
-        color: #4a5568; 
-        text-transform: uppercase; 
-        font-size: 0.75rem; 
-        letter-spacing: 0.05em;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 4px;
+    .modal-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #667eea;
+      margin-bottom: 8px;
     }
-    .info-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-    .info-tag {
-        background: #edf2f7;
-        color: #2d3748;
-        padding: 4px 10px;
-        border-radius: 15px;
-        font-size: 0.85rem;
-        cursor: pointer;
+    .modal-row { margin: 6px 0; }
+    .relation-link {
+      display: inline-block;
+      margin: 6px 8px 0 0;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(102,126,234,0.15);
+      color: #667eea;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 650;
     }
-    .info-tag:hover { background: #e2e8f0; }
-    .modal-footer {
-        padding: 15px 20px;
-        border-top: 1px solid #eee;
-        text-align: right;
+    .relation-link:hover { background: rgba(102,126,234,0.22); }
+    .modal-actions { margin-top: 16px; }
+    .modal-actions button { width: 100%; color: #fff; background: #667eea; border: none; }
+    .modal-actions button:hover { background: #5a6fe3; transform: none; }
+
+    @media (max-width: 768px) {
+      body { padding: 14px; }
+      h1 { font-size: 1.7rem; }
+      .person-card { width: 180px; }
     }
-    .btn-close {
-        padding: 8px 20px;
-        background: #cbd5e0;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        color: #2d3748;
-    }
-    .btn-close:hover { background: #a0aec0; }
+
+    .couple-avatars { display:flex; justify-content:center; gap:10px; margin-bottom:8px; }
+
+
   </style>
 </head>
+
 <body>
-  <div class="sticky-header-container">
-    <div class="header">
-      <h2>Vamsha Vruksha</h2>
-      <div class="stats-bar">
-        <span>Total Members: <b id="totalMembers">0</b></span>
-        <span>Generations: <b id="totalGens">0</b></span>
-      </div>
-    </div>
-    <div class="filters">
-      <input type="text" id="searchInput" placeholder="Search by name...">
-      <div id="gender-filter-container" class="filter-group"></div>
-      <div id="gen-filter-container" class="filter-group"></div>
-      <button id="resetBtn" class="filter-btn">Reset</button>
-    </div>
-  </div>
-
   <div class="container">
-    <div class="org-chart-container" id="treeContainer"></div>
+    <header>
+      <h1>Vamsha Vruksha</h1>
+      <p class="subtitle">Kashyapa Gothra Family Tree</p>
+
+      <div class="stats" aria-label="Tree statistics">
+        <div class="stat">
+          <div class="stat-number" id="totalMembers">0</div>
+          <div class="stat-label">Family Members</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" id="totalGens">0</div>
+          <div class="stat-label">Generations</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" id="totalMarriages">0</div>
+          <div class="stat-label">Marriages</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="controls">
+      <div class="control-panel">
+        <input id="searchInput" class="search-box" type="text" placeholder="Search family members by name..." />
+      </div>
+
+      <div class="control-panel">
+        <div style="font-weight:700; margin-bottom:10px;">Filter by Generation</div>
+        <div class="btn-row">
+          <button class="gen-filter active" data-gen="all" type="button">All</button>
+          <button class="gen-filter" data-gen="1" type="button">Gen 1</button>
+          <button class="gen-filter" data-gen="5" type="button">Gen 1–5</button>
+          <button class="gen-filter" data-gen="9" type="button">Recent</button>
+        </div>
+      </div>
+
+      <div class="control-panel">
+        <div style="font-weight:700; margin-bottom:10px;">View Options</div>
+        <div class="btn-row">
+          <button id="expandAllBtn" type="button">Expand All</button>
+          <button id="collapseBtn" type="button">Collapse</button>
+          <button id="resetBtn" type="button">Reset View</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="treeContainer" class="tree-container">
+      <div class="empty-state">Loading family tree...</div>
+    </div>
   </div>
 
-  <!-- Detail Modal -->
-  <div id="detailModal" class="modal">
+  <!-- Modal -->
+  <div id="detailModal" class="detail-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-content">
-      <span id="closeModalBtn" class="close">&times;</span>
-      <div class="modal-header">
-        <div id="modalAvatar" class="modal-avatar"></div>
-        <h2 id="modalName"></h2>
-        <p><span id="modalGender"></span> • Generation <span id="modalGen"></span></p>
+      <button class="close-btn" id="closeModalBtn" type="button" aria-label="Close">&times;</button>
+
+      <div class="modal-avatar" id="modalAvatar"></div>
+      <h2 class="modal-title" id="modalName"></h2>
+
+      <div class="modal-section">
+        <div class="modal-label">Basic information</div>
+        <div class="modal-row"><strong>Gender:</strong> <span id="modalGender"></span></div>
+        <div class="modal-row"><strong>Generation:</strong> <span id="modalGen"></span></div>
       </div>
-      <div class="modal-body">
-        <div id="datesSection" class="info-section">
-            <h4>Dates</h4>
-            <p id="datesContent"></p>
-        </div>
-        <div id="spouseSection" class="info-section">
-            <h4>Spouse(s)</h4>
-            <div id="spouseLinks" class="info-tags"></div>
-        </div>
-        <div id="parentsSection" class="info-section">
-            <h4>Parents</h4>
-            <div id="parentLinks" class="info-tags"></div>
-        </div>
-        <div id="childrenSection" class="info-section">
-            <h4>Children</h4>
-            <div id="childLinks" class="info-tags"></div>
-        </div>
-        <div id="notesSection" class="info-section">
-            <h4>Notes</h4>
-            <p id="modalNotes"></p>
-        </div>
+
+      <div class="modal-section" id="datesSection" style="display:none;">
+        <div class="modal-label">Dates</div>
+        <div id="datesContent"></div>
       </div>
-      <div class="modal-footer">
-        <button id="modalCloseBtnBottom" class="btn-close">Close</button>
+
+      <div class="modal-section" id="spouseSection" style="display:none;">
+        <div class="modal-label">Spouse(s)</div>
+        <div id="spouseLinks"></div>
+      </div>
+
+      <div class="modal-section" id="parentsSection" style="display:none;">
+        <div class="modal-label">Parents</div>
+        <div id="parentLinks"></div>
+      </div>
+
+      <div class="modal-section" id="childrenSection" style="display:none;">
+        <div class="modal-label">Children</div>
+        <div id="childLinks"></div>
+      </div>
+
+      <div class="modal-section" id="notesSection" style="display:none;">
+        <div class="modal-label">Notes</div>
+        <div id="modalNotes"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="modalCloseBtnBottom" type="button">Close</button>
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
-
