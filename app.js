@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         treeData: null,
         peopleMap: new Map(),
         genFilter: 'all',
-        genderFilter: 'all', // 'all', 'male', 'female'
+        genderFilter: 'all', 
     };
 
     const els = {
@@ -16,6 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
         treeContainer: document.getElementById('treeContainer'),
         genFilterContainer: document.getElementById('gen-filter-container'),
         genderFilterContainer: document.getElementById('gender-filter-container'),
+        resetBtn: document.getElementById('resetBtn'),
+        // Modal elements
+        modal: document.getElementById('detailModal'),
+        closeModalBtn: document.getElementById('closeModalBtn'),
+        modalCloseBtnBottom: document.getElementById('modalCloseBtnBottom'),
+        modalAvatar: document.getElementById('modalAvatar'),
+        modalName: document.getElementById('modalName'),
+        modalGender: document.getElementById('modalGender'),
+        modalGen: document.getElementById('modalGen'),
+        datesSection: document.getElementById('datesSection'),
+        datesContent: document.getElementById('datesContent'),
+        spouseSection: document.getElementById('spouseSection'),
+        spouseLinks: document.getElementById('spouseLinks'),
+        parentsSection: document.getElementById('parentsSection'),
+        parentLinks: document.getElementById('parentLinks'),
+        childrenSection: document.getElementById('childrenSection'),
+        childLinks: document.getElementById('childLinks'),
+        notesSection: document.getElementById('notesSection'),
+        modalNotes: document.getElementById('modalNotes'),
     };
 
     async function init() {
@@ -164,17 +183,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function wireUI() {
         els.searchInput.addEventListener('input', () => applySearchAndFilter());
+        els.resetBtn.addEventListener('click', resetFilters);
+
+        // Modal
+        els.closeModalBtn.addEventListener('click', closeModal);
+        els.modalCloseBtnBottom.addEventListener('click', closeModal);
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        els.modal.addEventListener('click', (e) => { if (e.target === els.modal) closeModal(); });
+
+        // Event delegation for opening modal
+        els.treeContainer.addEventListener('click', (e) => {
+            const personDiv = e.target.closest('.person-details');
+            if (personDiv && personDiv.dataset.personId) {
+                openModal(personDiv.dataset.personId);
+            }
+        });
+    }
+
+    function resetFilters() {
+        els.searchInput.value = '';
+        state.genFilter = 'all';
+        state.genderFilter = 'all';
+        generateFilters(); // Regenerate to reset active classes
+        renderTree(); // Re-render to clear search highlights
     }
 
     function renderTree() {
         els.treeContainer.innerHTML = '';
+        // Find true roots (no parents)
         const roots = state.treeData.people.filter(p => p.parents.length === 0);
+        // Sort roots by id or name for consistent order
+        roots.sort((a,b) => (a.id - b.id)); 
 
         const chart = document.createElement('ul');
         chart.className = 'org-chart';
 
         const rendered = new Set();
         for (const root of roots) {
+            // Only render if not already rendered (avoids loops or multi-parent issues somewhat)
             if (!rendered.has(root.id)) {
                chart.appendChild(renderNodeRecursive(root, rendered));
             }
@@ -200,32 +246,45 @@ document.addEventListener('DOMContentLoaded', () => {
         // Spouses
         if (person.spouses && person.spouses.length > 0) {
             person.spouses.forEach(spouseId => {
-                if (rendered.has(spouseId)) return; // Avoid duplicating spouse if they are also rendered from a root
+                // If spouse is already rendered (e.g. as a root or child of someone else - rare in strict tree but possible), skip?
+                // Actually, for display purposes in this tree, we usually want to show the spouse here.
+                // But we must check if this spouse is a 'blood relative' who might have their own tree branch. 
+                // In many simple trees, spouse is just a leaf or attached here.
+                if (rendered.has(spouseId)) return; 
+
                 const spouse = state.peopleMap.get(spouseId);
                 if (!spouse) return;
 
-                // Prevent mutual spouse rendering in same capsule
+                // Avoid duplicates in capsule
                 if (!capsule.querySelector(`[data-person-id='${spouseId}']`)){
                     capsule.appendChild(document.createElement('div')).className = 'spouse-separator';
                     capsule.appendChild(createPersonDiv(spouse));
-                    rendered.add(spouseId); // Mark spouse as rendered within this capsule
+                    rendered.add(spouseId); 
                 }
             });
         }
 
         li.appendChild(capsule);
 
+        // Children
         const children = person.children.map(cId => state.peopleMap.get(cId)).filter(Boolean);
+
+        // Sort children by age or id if possible? default sort order
+
         if (children.length > 0) {
             const subList = document.createElement('ul');
-            const childRendered = new Set();
+            let hasChildrenToRender = false;
+
             children.forEach(child => {
-                if(!childRendered.has(child.id)){
+                if(!rendered.has(child.id)){
                     subList.appendChild(renderNodeRecursive(child, rendered));
-                    childRendered.add(child.id);
+                    hasChildrenToRender = true;
                 }
             });
-            if(subList.hasChildNodes()) li.appendChild(subList);
+
+            if(hasChildrenToRender) {
+                li.appendChild(subList);
+            }
         }
 
         return li;
@@ -260,11 +319,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isGenMatch && isGenderMatch && isNameMatch) {
                 capsule.style.opacity = '1';
-                capsule.style.border = '1px solid #ddd';
+                // capsule.style.display = 'flex'; // Don't hide display, it breaks structure
+                capsule.style.pointerEvents = 'auto';
                 anyVisible = true;
             } else {
-                capsule.style.opacity = '0.2';
-                capsule.style.border = '1px solid #eee';
+                capsule.style.opacity = '0.1';
+                // capsule.style.display = 'flex'; 
+                capsule.style.pointerEvents = 'none';
+            }
+        });
+    }
+
+    // Modal Logic
+    function openModal(personId) {
+        const person = state.peopleMap.get(personId);
+        if (!person) return;
+
+        // Basic Info
+        els.modalAvatar.textContent = person.gender === 'male' ? '👨' : (person.gender === 'female' ? '👩' : '👤');
+        els.modalName.textContent = person.name;
+        els.modalGender.textContent = person.gender ? (person.gender.charAt(0).toUpperCase() + person.gender.slice(1)) : 'Unknown';
+        els.modalGen.textContent = person.generation;
+
+        // Dates
+        if (person.born || person.died) {
+            els.datesSection.style.display = 'block';
+            const b = person.born || '?';
+            const d = person.died ? ` - ${person.died}` : '';
+            els.datesContent.textContent = `Born: ${b}${d}`;
+        } else {
+            els.datesSection.style.display = 'none';
+        }
+
+        // Spouses
+        renderLinks(els.spouseSection, els.spouseLinks, person.spouses);
+
+        // Parents
+        renderLinks(els.parentsSection, els.parentLinks, person.parents);
+
+        // Children
+        renderLinks(els.childrenSection, els.childLinks, person.children);
+
+        // Notes
+        if (person.notes) {
+            els.notesSection.style.display = 'block';
+            els.modalNotes.textContent = person.notes;
+        } else {
+            els.notesSection.style.display = 'none';
+        }
+
+        els.modal.classList.add('active');
+    }
+
+    function closeModal() {
+        els.modal.classList.remove('active');
+    }
+
+    function renderLinks(sectionEl, containerEl, ids) {
+        containerEl.innerHTML = '';
+        if (!ids || ids.length === 0) {
+            sectionEl.style.display = 'none';
+            return;
+        }
+        sectionEl.style.display = 'block';
+        ids.forEach(id => {
+            const p = state.peopleMap.get(id);
+            if (p) {
+                const tag = document.createElement('span');
+                tag.className = 'info-tag';
+                tag.textContent = `${p.name} (G${p.generation})`;
+                tag.onclick = () => openModal(id);
+                containerEl.appendChild(tag);
             }
         });
     }
