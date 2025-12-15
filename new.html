@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Tree</title>
+    <title>Family Tree - Rama Bhatta</title>
     <style>
         * {
             margin: 0;
@@ -16,7 +16,6 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            overflow-x: hidden;
         }
 
         .container {
@@ -96,33 +95,35 @@
             transform: translateY(-2px);
         }
 
-        /* Tree Container */
+        /* Tree Container - FIXED */
         .tree-container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 30px;
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 70vh;
+            padding: 50px;
+            overflow: auto;
+            height: 65vh;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        /* Tree Structure */
+        /* Tree Structure - FIXED */
         .tree {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            display: inline-block;
+            min-width: 100%;
+            padding: 60px;
+            position: relative;
         }
 
         .tree ul {
             padding-top: 20px;
             position: relative;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             list-style: none;
+            gap: 10px;
+            flex-wrap: nowrap;
         }
 
         .tree li {
@@ -130,7 +131,8 @@
             text-align: center;
             list-style-type: none;
             position: relative;
-            padding: 20px 5px 0 5px;
+            padding: 20px 10px 0 10px;
+            min-width: 180px;
         }
 
         .tree li::before, .tree li::after {
@@ -138,7 +140,7 @@
             position: absolute;
             top: 0;
             right: 50%;
-            border-top: 2px solid rgba(255, 255, 255, 0.4);
+            border-top: 2px solid rgba(255, 255, 255, 0.5);
             width: 50%;
             height: 20px;
         }
@@ -146,7 +148,7 @@
         .tree li::after {
             right: auto;
             left: 50%;
-            border-left: 2px solid rgba(255, 255, 255, 0.4);
+            border-left: 2px solid rgba(255, 255, 255, 0.5);
         }
 
         .tree li:only-child::after, .tree li:only-child::before {
@@ -162,7 +164,7 @@
         }
 
         .tree li:last-child::before {
-            border-right: 2px solid rgba(255, 255, 255, 0.4);
+            border-right: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 0 5px 0 0;
         }
 
@@ -175,7 +177,7 @@
             position: absolute;
             top: 0;
             left: 50%;
-            border-left: 2px solid rgba(255, 255, 255, 0.4);
+            border-left: 2px solid rgba(255, 255, 255, 0.5);
             width: 0;
             height: 20px;
         }
@@ -190,14 +192,18 @@
             display: inline-block;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 150px;
+            min-width: 160px;
+            max-width: 180px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
         }
 
         .person-card:hover {
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             background: rgba(255, 255, 255, 0.25);
+            z-index: 10;
         }
 
         .person-card.male {
@@ -213,11 +219,18 @@
         .person-card.highlight {
             animation: pulse 1.5s infinite;
             border-width: 3px;
+            z-index: 100;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0);
+            }
         }
 
         .person-name {
@@ -225,6 +238,7 @@
             color: white;
             font-size: 14px;
             margin-bottom: 5px;
+            word-wrap: break-word;
         }
 
         .person-info {
@@ -254,6 +268,8 @@
             max-width: 600px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideDown 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         @keyframes slideDown {
@@ -269,6 +285,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .modal-header h2 {
@@ -355,6 +374,38 @@
             opacity: 0.8;
         }
 
+        /* Scroll indicators */
+        .scroll-hint {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: fadeInOut 3s infinite;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .scroll-hint.right {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .scroll-hint.bottom {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .controls {
@@ -366,35 +417,91 @@
             }
 
             .tree-container {
-                padding: 15px;
+                padding: 30px;
+                height: 60vh;
+            }
+
+            .tree {
+                padding: 40px;
             }
 
             .person-card {
-                min-width: 120px;
-                padding: 10px 15px;
+                min-width: 130px;
+                max-width: 150px;
+                padding: 12px 15px;
             }
 
             .modal-content {
                 margin: 10% 10px;
                 max-width: 95%;
             }
-        }
 
-        .generation-level {
-            margin-bottom: 40px;
-        }
+            .person-name {
+                font-size: 13px;
+            }
 
-        .generation-label {
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            text-align: center;
-            opacity: 0.8;
+            .person-info {
+                font-size: 10px;
+            }
+
+            .tree li {
+                min-width: 150px;
+            }
         }
 
         .hidden {
             display: none !important;
+        }
+
+        /* Custom scrollbar */
+        .tree-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .tree-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .tree-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .tree-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Zoom controls */
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -436,7 +543,12 @@
             <button class="btn" id="resetBtn">Reset</button>
         </div>
 
-        <div class="tree-container">
+        <div class="tree-container" id="treeContainer">
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomIn" title="Zoom In">+</button>
+                <button class="zoom-btn" id="zoomOut" title="Zoom Out">−</button>
+                <button class="zoom-btn" id="zoomReset" title="Reset Zoom">⟲</button>
+            </div>
             <div id="treeView" class="tree"></div>
         </div>
     </div>
@@ -450,7 +562,7 @@
             </div>
             <div class="modal-body">
                 <div class="modal-section">
-                    <h3>Basic Information</h3>
+                    <h3>ℹ️ Basic Information</h3>
                     <p><strong>Gender:</strong> <span id="modalGender"></span></p>
                     <p><strong>Birth Date:</strong> <span id="modalBirth"></span></p>
                     <p><strong>Death Date:</strong> <span id="modalDeath"></span></p>
@@ -476,17 +588,1130 @@
     </div>
 
     <script>
-        let familyData = null;
+        // Embedded family data
+        const familyData = {
+    "schemaVersion": "1.0",
+    "app": "FamilyTreeJSONBuilder",
+    "createdAt": "2025-12-13T20:16:56.060248+00:00",
+    "updatedAt": "2025-12-13T20:16:56.060248+00:00",
+    "people": [
+      {
+        "id": "9c45f9ea-46cd-4d3f-a840-f9e341fd3c6c",
+        "name": "Subba Bhatta",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "0ac75056-23f8-4599-968c-36b73320fae6"
+        ],
+        "children": [
+          "15024850-96c9-46a3-be69-e753d75aff10",
+          "31382e7d-4821-4951-825d-2d05959c85d4",
+          "f9c3125e-26aa-4136-a16d-8085ba1c009a",
+          "f166e43e-b48e-4f81-878e-0785b2d4a949"
+        ]
+      },
+      {
+        "id": "0ac75056-23f8-4599-968c-36b73320fae6",
+        "name": "Lakshminarasamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "9c45f9ea-46cd-4d3f-a840-f9e341fd3c6c"
+        ],
+        "children": []
+      },
+      {
+        "id": "15024850-96c9-46a3-be69-e753d75aff10",
+        "name": "Narasimhaiah",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "9c45f9ea-46cd-4d3f-a840-f9e341fd3c6c"
+        ],
+        "spouses": [
+          "a9870e65-4a39-4076-ab8e-735e35c696cd"
+        ],
+        "children": [
+          "d9d51b54-992a-4781-8e26-baefb19aa834",
+          "c5cc1001-3e53-48cb-ba37-2b3a3631bc1d"
+        ]
+      },
+      {
+        "id": "a9870e65-4a39-4076-ab8e-735e35c696cd",
+        "name": "Shankaramma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "15024850-96c9-46a3-be69-e753d75aff10"
+        ],
+        "children": []
+      },
+      {
+        "id": "31382e7d-4821-4951-825d-2d05959c85d4",
+        "name": "Shamanna T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "9c45f9ea-46cd-4d3f-a840-f9e341fd3c6c"
+        ],
+        "spouses": [
+          "5b3dcfc9-13b6-4e44-8ef9-f1fb241f4cdd"
+        ],
+        "children": [
+          "3e7a3a9c-7b91-4133-bc32-34b28ef2dfed"
+        ]
+      },
+      {
+        "id": "5b3dcfc9-13b6-4e44-8ef9-f1fb241f4cdd",
+        "name": "Nanjamma (Shamanna spouse)",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "31382e7d-4821-4951-825d-2d05959c85d4"
+        ],
+        "children": []
+      },
+      {
+        "id": "f9c3125e-26aa-4136-a16d-8085ba1c009a",
+        "name": "Seetharamaiah T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "9c45f9ea-46cd-4d3f-a840-f9e341fd3c6c"
+        ],
+        "spouses": [
+          "8cbd8f71-822a-4baf-839c-f7ea7a5dbadc"
+        ],
+        "children": [
+          "b0d8b7e6-8a0b-4ea3-a9c5-6a4a21d167cb",
+          "cd925d28-45e6-42a5-a9a9-48b7b1c1e1ac"
+        ]
+      },
+      {
+        "id": "8cbd8f71-822a-4baf-839c-f7ea7a5dbadc",
+        "name": "Subbalakshamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "f9c3125e-26aa-4136-a16d-8085ba1c009a"
+        ],
+        "children": []
+      },
+      {
+        "id": "f166e43e-b48e-4f81-878e-0785b2d4a949",
+        "name": "Sreekantaiah T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "9c45f9ea-46cd-4d3f-a840-f9e341fd3c6c"
+        ],
+        "spouses": [
+          "bcb33f9b-1c60-4f53-a3cc-1be34b2c1b4f"
+        ],
+        "children": [
+          "f3c9e8e1-8fef-4ee4-b2fe-f8f1378d0f65",
+          "814d2ca0-70f8-4e5f-a7d2-09b19b9c2b6b"
+        ]
+      },
+      {
+        "id": "bcb33f9b-1c60-4f53-a3cc-1be34b2c1b4f",
+        "name": "Sharadamma (Sreekantaiah spouse)",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "f166e43e-b48e-4f81-878e-0785b2d4a949"
+        ],
+        "children": []
+      },
+  
+      {
+        "id": "d9d51b54-992a-4781-8e26-baefb19aa834",
+        "name": "Subbaiah T N",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "15024850-96c9-46a3-be69-e753d75aff10"
+        ],
+        "spouses": [
+          "3d4e62de-2d3f-46f6-84d1-9dc3c1f3a7d6"
+        ],
+        "children": [
+          "0f6b1a7f-f5b5-4d01-945a-62e4d3d93c47",
+          "a7f2a45d-60a1-4af1-a0b3-c5c7b4d29b25"
+        ]
+      },
+      {
+        "id": "3d4e62de-2d3f-46f6-84d1-9dc3c1f3a7d6",
+        "name": "Seethalakshmi",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "d9d51b54-992a-4781-8e26-baefb19aa834"
+        ],
+        "children": []
+      },
+      {
+        "id": "c5cc1001-3e53-48cb-ba37-2b3a3631bc1d",
+        "name": "Krishnaiah T N",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "15024850-96c9-46a3-be69-e753d75aff10"
+        ],
+        "spouses": [
+          "d73e3b1c-5b85-4a2f-bbbf-a6b1a412c4f9"
+        ],
+        "children": [
+          "0c60fd0c-0e5e-4e23-98b7-d13b1d08984f",
+          "c9cc22a3-ea56-4681-8c8d-3dfe54a7d2b2"
+        ]
+      },
+      {
+        "id": "d73e3b1c-5b85-4a2f-bbbf-a6b1a412c4f9",
+        "name": "Nagalakshmi",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "c5cc1001-3e53-48cb-ba37-2b3a3631bc1d"
+        ],
+        "children": []
+      },
+  
+      {
+        "id": "0f6b1a7f-f5b5-4d01-945a-62e4d3d93c47",
+        "name": "Narasimha Murthy T S (Chaya spouse)",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d9d51b54-992a-4781-8e26-baefb19aa834"
+        ],
+        "spouses": [
+          "b71b6b8e-b47c-47cc-9e19-9b0c56e9d3c8"
+        ],
+        "children": [
+          "de4f5b0c-2d1d-4d65-bf02-3d0e5c7d11fd"
+        ]
+      },
+      {
+        "id": "b71b6b8e-b47c-47cc-9e19-9b0c56e9d3c8",
+        "name": "Chaya",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "0f6b1a7f-f5b5-4d01-945a-62e4d3d93c47"
+        ],
+        "children": []
+      },
+      {
+        "id": "a7f2a45d-60a1-4af1-a0b3-c5c7b4d29b25",
+        "name": "Vishwanath T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d9d51b54-992a-4781-8e26-baefb19aa834"
+        ],
+        "spouses": [
+          "aa2a21f6-34db-47fd-bc23-995be7b7077c"
+        ],
+        "children": [
+          "a7c32f65-0bff-4bdc-96b8-3f0c1d5df90f"
+        ]
+      },
+      {
+        "id": "aa2a21f6-34db-47fd-bc23-995be7b7077c",
+        "name": "Shantha",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "a7f2a45d-60a1-4af1-a0b3-c5c7b4d29b25"
+        ],
+        "children": []
+      },
+      {
+        "id": "de4f5b0c-2d1d-4d65-bf02-3d0e5c7d11fd",
+        "name": "Vinay Kumar T N",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "0f6b1a7f-f5b5-4d01-945a-62e4d3d93c47"
+        ],
+        "spouses": [
+          "6d046f75-6be1-4f3a-86c9-a0f50b7b8d41"
+        ],
+        "children": []
+      },
+      {
+        "id": "6d046f75-6be1-4f3a-86c9-a0f50b7b8d41",
+        "name": "Ambika",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "de4f5b0c-2d1d-4d65-bf02-3d0e5c7d11fd"
+        ],
+        "children": []
+      },
+      {
+        "id": "a7c32f65-0bff-4bdc-96b8-3f0c1d5df90f",
+        "name": "Harsha T N",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "a7f2a45d-60a1-4af1-a0b3-c5c7b4d29b25"
+        ],
+        "spouses": [
+          "7b4d6e04-9b46-4c6b-a483-0f213a6f2b1f"
+        ],
+        "children": []
+      },
+      {
+        "id": "7b4d6e04-9b46-4c6b-a483-0f213a6f2b1f",
+        "name": "Ramya Shree",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "a7c32f65-0bff-4bdc-96b8-3f0c1d5df90f"
+        ],
+        "children": []
+      },
+  
+      {
+        "id": "0c60fd0c-0e5e-4e23-98b7-d13b1d08984f",
+        "name": "Prasanna Kumar T K",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "c5cc1001-3e53-48cb-ba37-2b3a3631bc1d"
+        ],
+        "spouses": [
+          "3b919d7e-3d61-4eaa-8cf6-8c9f1b9f2a5b"
+        ],
+        "children": []
+      },
+      {
+        "id": "3b919d7e-3d61-4eaa-8cf6-8c9f1b9f2a5b",
+        "name": "Ramadevi",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "0c60fd0c-0e5e-4e23-98b7-d13b1d08984f"
+        ],
+        "children": []
+      },
+      {
+        "id": "c9cc22a3-ea56-4681-8c8d-3dfe54a7d2b2",
+        "name": "Shankara Prasad T K",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "c5cc1001-3e53-48cb-ba37-2b3a3631bc1d"
+        ],
+        "spouses": [
+          "7c24c1a3-92ad-4a8a-9e87-5d3c1329e1fd"
+        ],
+        "children": [
+          "0b2c3d64-b960-41af-9855-90a84fd3d6d5"
+        ]
+      },
+      {
+        "id": "7c24c1a3-92ad-4a8a-9e87-5d3c1329e1fd",
+        "name": "Dr. Mamatha",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "c9cc22a3-ea56-4681-8c8d-3dfe54a7d2b2"
+        ],
+        "children": []
+      },
+      {
+        "id": "0b2c3d64-b960-41af-9855-90a84fd3d6d5",
+        "name": "Sathyajit",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "c9cc22a3-ea56-4681-8c8d-3dfe54a7d2b2"
+        ],
+        "spouses": [],
+        "children": []
+      },
+  
+      {
+        "id": "3e7a3a9c-7b91-4133-bc32-34b28ef2dfed",
+        "name": "Krishnamurthy T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "31382e7d-4821-4951-825d-2d05959c85d4"
+        ],
+        "spouses": [
+          "f7b74f4d-1a4c-4c65-a59a-2c43ce2f4df1"
+        ],
+        "children": [
+          "aa4fe3ea-1f04-42a4-a7fd-5a96a66c9b1b",
+          "d2a75e83-4ac8-4c36-910b-b0909a2d45cc",
+          "d5d4f0f8-3d18-4f3b-8f65-1d9b2f5c40c9"
+        ]
+      },
+      {
+        "id": "f7b74f4d-1a4c-4c65-a59a-2c43ce2f4df1",
+        "name": "Gayathri",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "3e7a3a9c-7b91-4133-bc32-34b28ef2dfed"
+        ],
+        "children": []
+      },
+      {
+        "id": "aa4fe3ea-1f04-42a4-a7fd-5a96a66c9b1b",
+        "name": "Harish Datta",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "3e7a3a9c-7b91-4133-bc32-34b28ef2dfed"
+        ],
+        "spouses": [],
+        "children": []
+      },
+      {
+        "id": "d2a75e83-4ac8-4c36-910b-b0909a2d45cc",
+        "name": "Mahesh Datta",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "3e7a3a9c-7b91-4133-bc32-34b28ef2dfed"
+        ],
+        "spouses": [
+          "1b3bca45-2f64-4de8-88f8-86b03f40e2e0"
+        ],
+        "children": []
+      },
+      {
+        "id": "1b3bca45-2f64-4de8-88f8-86b03f40e2e0",
+        "name": "Meghana",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "d2a75e83-4ac8-4c36-910b-b0909a2d45cc"
+        ],
+        "children": []
+      },
+      {
+        "id": "d5d4f0f8-3d18-4f3b-8f65-1d9b2f5c40c9",
+        "name": "Ganesha",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "3e7a3a9c-7b91-4133-bc32-34b28ef2dfed"
+        ],
+        "spouses": [],
+        "children": []
+      },
+  
+      {
+        "id": "b0d8b7e6-8a0b-4ea3-a9c5-6a4a21d167cb",
+        "name": "Subramanya T S (Raja)",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "f9c3125e-26aa-4136-a16d-8085ba1c009a"
+        ],
+        "spouses": [
+          "bb7e2d76-93f0-4d58-b9f2-1c07f4fa41d0"
+        ],
+        "children": []
+      },
+      {
+        "id": "bb7e2d76-93f0-4d58-b9f2-1c07f4fa41d0",
+        "name": "Rama",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "b0d8b7e6-8a0b-4ea3-a9c5-6a4a21d167cb"
+        ],
+        "children": []
+      },
+      {
+        "id": "cd925d28-45e6-42a5-a9a9-48b7b1c1e1ac",
+        "name": "Narasimha Murthy T S (Anasuya spouse)",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "f9c3125e-26aa-4136-a16d-8085ba1c009a"
+        ],
+        "spouses": [
+          "7a3ff57e-2b5c-4a4a-bc1b-3324f6b0563c"
+        ],
+        "children": [
+          "18fdd373-4f01-4c16-a22c-310b20baad95",
+          "a2a88518-ec0c-4cc4-9eae-260cd5e98d11"
+        ]
+      },
+      {
+        "id": "7a3ff57e-2b5c-4a4a-bc1b-3324f6b0563c",
+        "name": "Anasuya",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "cd925d28-45e6-42a5-a9a9-48b7b1c1e1ac"
+        ],
+        "children": []
+      },
+      {
+        "id": "18fdd373-4f01-4c16-a22c-310b20baad95",
+        "name": "Sandeep",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "From image: shown together with Sachin; treated as separate child (confirm).",
+        "parents": [
+          "cd925d28-45e6-42a5-a9a9-48b7b1c1e1ac"
+        ],
+        "spouses": [],
+        "children": []
+      },
+      {
+        "id": "a2a88518-ec0c-4cc4-9eae-260cd5e98d11",
+        "name": "Sachin",
+        "gender": "unknown",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "From image: shown together with Sandeep; treated as separate child (confirm).",
+        "parents": [
+          "cd925d28-45e6-42a5-a9a9-48b7b1c1e1ac"
+        ],
+        "spouses": [],
+        "children": []
+      },
+  
+      {
+        "id": "f3c9e8e1-8fef-4ee4-b2fe-f8f1378d0f65",
+        "name": "Nagaraj T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "f166e43e-b48e-4f81-878e-0785b2d4a949"
+        ],
+        "spouses": [
+          "7b8f2a1a-7a5c-458d-8b3a-1c29f47cc8b8"
+        ],
+        "children": [
+          "6a3d03e9-36e1-4a78-93b5-5b2d1a2a88f7"
+        ]
+      },
+      {
+        "id": "7b8f2a1a-7a5c-458d-8b3a-1c29f47cc8b8",
+        "name": "Gayathri (Nagaraj spouse)",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "f3c9e8e1-8fef-4ee4-b2fe-f8f1378d0f65"
+        ],
+        "children": []
+      },
+      {
+        "id": "814d2ca0-70f8-4e5f-a7d2-09b19b9c2b6b",
+        "name": "Sathyanarayana T S",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "f166e43e-b48e-4f81-878e-0785b2d4a949"
+        ],
+        "spouses": [
+          "e0f2c7d7-88d7-4fe0-8ac8-f1b53b4f094a"
+        ],
+        "children": [
+          "ab6e2f9a-3b0a-4a6a-84e3-3c33fdc0f6f5"
+        ]
+      },
+      {
+        "id": "e0f2c7d7-88d7-4fe0-8ac8-f1b53b4f094a",
+        "name": "Uma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "814d2ca0-70f8-4e5f-a7d2-09b19b9c2b6b"
+        ],
+        "children": []
+      },
+      {
+        "id": "6a3d03e9-36e1-4a78-93b5-5b2d1a2a88f7",
+        "name": "Supreeth",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "f3c9e8e1-8fef-4ee4-b2fe-f8f1378d0f65"
+        ],
+        "spouses": [
+          "e6e1ac7e-3d7e-4e78-84e0-0f1f2a1af8c0"
+        ],
+        "children": []
+      },
+      {
+        "id": "e6e1ac7e-3d7e-4e78-84e0-0f1f2a1af8c0",
+        "name": "Amitha",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "6a3d03e9-36e1-4a78-93b5-5b2d1a2a88f7"
+        ],
+        "children": []
+      },
+      {
+        "id": "ab6e2f9a-3b0a-4a6a-84e3-3c33fdc0f6f5",
+        "name": "Suhas",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "814d2ca0-70f8-4e5f-a7d2-09b19b9c2b6b"
+        ],
+        "spouses": [
+          "b6a3da2f-3a88-4f88-b06a-9a8c1b4cde72"
+        ],
+        "children": []
+      },
+      {
+        "id": "b6a3da2f-3a88-4f88-b06a-9a8c1b4cde72",
+        "name": "Arpita",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "ab6e2f9a-3b0a-4a6a-84e3-3c33fdc0f6f5"
+        ],
+        "children": []
+      },
+  
+      {
+        "id": "4a657a93-bac0-4c0a-9a3c-2e41cd25f198",
+        "name": "Thamma Bhatta (Nanjundaiah)",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "b0c1ec2b-62f6-4e5e-9f7d-f69f21d4c726"
+        ],
+        "children": [
+          "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7"
+        ]
+      },
+      {
+        "id": "b0c1ec2b-62f6-4e5e-9f7d-f69f21d4c726",
+        "name": "Lakshmidevamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "4a657a93-bac0-4c0a-9a3c-2e41cd25f198"
+        ],
+        "children": []
+      },
+      {
+        "id": "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7",
+        "name": "Ramaiah",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "4a657a93-bac0-4c0a-9a3c-2e41cd25f198"
+        ],
+        "spouses": [
+          "919f5202-57ed-4c2b-bbcb-12db5f46a2d0"
+        ],
+        "children": [
+          "2c5a2d58-6f14-41ab-8cb0-404a8cbcb1ac",
+          "e0c8e1ee-6ac6-4c08-9a83-20b7e1f62ccf",
+          "d6c3c2e7-0db4-4c1d-9f4f-8f6c8d0d8d4c",
+          "4c08a9c9-6b36-4f8c-8d07-0d01e2f2b0bf"
+        ]
+      },
+      {
+        "id": "919f5202-57ed-4c2b-bbcb-12db5f46a2d0",
+        "name": "Nanjamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7"
+        ],
+        "children": []
+      },
+  
+      {
+        "id": "2c5a2d58-6f14-41ab-8cb0-404a8cbcb1ac",
+        "name": "Ranganath",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7"
+        ],
+        "spouses": [
+          "9c0d3b8e-4c0a-470a-8e20-3f21a3e2a7c7"
+        ],
+        "children": [
+          "d7c3f0c2-4b62-4a90-97b2-7c4f4b0c2a5c",
+          "acb9c1e0-1d23-4b70-b8b1-6b7f0e1c2d3f"
+        ]
+      },
+      {
+        "id": "9c0d3b8e-4c0a-470a-8e20-3f21a3e2a7c7",
+        "name": "Lalithamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "2c5a2d58-6f14-41ab-8cb0-404a8cbcb1ac"
+        ],
+        "children": []
+      },
+      {
+        "id": "d7c3f0c2-4b62-4a90-97b2-7c4f4b0c2a5c",
+        "name": "Ranga Narasimha",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "2c5a2d58-6f14-41ab-8cb0-404a8cbcb1ac"
+        ],
+        "spouses": [
+          "fb9b0b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b"
+        ],
+        "children": [
+          "b1a2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c"
+        ]
+      },
+      {
+        "id": "fb9b0b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b",
+        "name": "Uma (Ranga Narasimha spouse)",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "d7c3f0c2-4b62-4a90-97b2-7c4f4b0c2a5c"
+        ],
+        "children": []
+      },
+      {
+        "id": "b1a2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c",
+        "name": "Jayasimha",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d7c3f0c2-4b62-4a90-97b2-7c4f4b0c2a5c"
+        ],
+        "spouses": [],
+        "children": []
+      },
+      {
+        "id": "acb9c1e0-1d23-4b70-b8b1-6b7f0e1c2d3f",
+        "name": "Harish",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "2c5a2d58-6f14-41ab-8cb0-404a8cbcb1ac"
+        ],
+        "spouses": [],
+        "children": []
+      },
+  
+      {
+        "id": "e0c8e1ee-6ac6-4c08-9a83-20b7e1f62ccf",
+        "name": "Narayana Rao",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7"
+        ],
+        "spouses": [
+          "8b7a6c5d-4e3f-4a2b-9c8d-7e6f5a4b3c2d"
+        ],
+        "children": [
+          "c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"
+        ]
+      },
+      {
+        "id": "8b7a6c5d-4e3f-4a2b-9c8d-7e6f5a4b3c2d",
+        "name": "Kamalamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "e0c8e1ee-6ac6-4c08-9a83-20b7e1f62ccf"
+        ],
+        "children": []
+      },
+      {
+        "id": "c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e",
+        "name": "Jayarama",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "e0c8e1ee-6ac6-4c08-9a83-20b7e1f62ccf"
+        ],
+        "spouses": [
+          "e1f2a3b4-c5d6-47e8-9f0a-1b2c3d4e5f6a"
+        ],
+        "children": [
+          "f1e2d3c4-b5a6-47c8-9d0e-1f2a3b4c5d6e",
+          "0a1b2c3d-4e5f-4789-9a0b-1c2d3e4f5a6b"
+        ]
+      },
+      {
+        "id": "e1f2a3b4-c5d6-47e8-9f0a-1b2c3d4e5f6a",
+        "name": "Manjula",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"
+        ],
+        "children": []
+      },
+      {
+        "id": "f1e2d3c4-b5a6-47c8-9d0e-1f2a3b4c5d6e",
+        "name": "Vinay",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"
+        ],
+        "spouses": [
+          "a1b2c3d4-e5f6-4789-9a0b-1c2d3e4f5a6b"
+        ],
+        "children": []
+      },
+      {
+        "id": "a1b2c3d4-e5f6-4789-9a0b-1c2d3e4f5a6b",
+        "name": "Prarthana",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "f1e2d3c4-b5a6-47c8-9d0e-1f2a3b4c5d6e"
+        ],
+        "children": []
+      },
+      {
+        "id": "0a1b2c3d-4e5f-4789-9a0b-1c2d3e4f5a6b",
+        "name": "Vishwas",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"
+        ],
+        "spouses": [],
+        "children": []
+      },
+  
+      {
+        "id": "d6c3c2e7-0db4-4c1d-9f4f-8f6c8d0d8d4c",
+        "name": "Nanjundaiah (Thammaiah)",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7"
+        ],
+        "spouses": [
+          "c2d3e4f5-a6b7-4890-9a0b-1c2d3e4f5a6b"
+        ],
+        "children": [
+          "d1e2f3a4-b5c6-4789-9a0b-1c2d3e4f5a6b",
+          "f2e3d4c5-b6a7-4890-9a0b-1c2d3e4f5a6b",
+          "9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d"
+        ]
+      },
+      {
+        "id": "c2d3e4f5-a6b7-4890-9a0b-1c2d3e4f5a6b",
+        "name": "Sharadamma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "d6c3c2e7-0db4-4c1d-9f4f-8f6c8d0d8d4c"
+        ],
+        "children": []
+      },
+      {
+        "id": "d1e2f3a4-b5c6-4789-9a0b-1c2d3e4f5a6b",
+        "name": "Raghu",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d6c3c2e7-0db4-4c1d-9f4f-8f6c8d0d8d4c"
+        ],
+        "spouses": [
+          "c3d4e5f6-a7b8-4901-9a0b-1c2d3e4f5a6b"
+        ],
+        "children": [
+          "0b1c2d3e-4f5a-4b6c-8d9e-0f1a2b3c4d5e"
+        ]
+      },
+      {
+        "id": "c3d4e5f6-a7b8-4901-9a0b-1c2d3e4f5a6b",
+        "name": "Anasuya (Raghu spouse)",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "d1e2f3a4-b5c6-4789-9a0b-1c2d3e4f5a6b"
+        ],
+        "children": []
+      },
+      {
+        "id": "0b1c2d3e-4f5a-4b6c-8d9e-0f1a2b3c4d5e",
+        "name": "Srihari",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d1e2f3a4-b5c6-4789-9a0b-1c2d3e4f5a6b"
+        ],
+        "spouses": [],
+        "children": []
+      },
+      {
+        "id": "f2e3d4c5-b6a7-4890-9a0b-1c2d3e4f5a6b",
+        "name": "Ramesh",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d6c3c2e7-0db4-4c1d-9f4f-8f6c8d0d8d4c"
+        ],
+        "spouses": [
+          "b4c5d6e7-f8a9-4012-9a0b-1c2d3e4f5a6b"
+        ],
+        "children": [
+          "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f"
+        ]
+      },
+      {
+        "id": "b4c5d6e7-f8a9-4012-9a0b-1c2d3e4f5a6b",
+        "name": "Vijayalakshmi",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "f2e3d4c5-b6a7-4890-9a0b-1c2d3e4f5a6b"
+        ],
+        "children": []
+      },
+      {
+        "id": "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+        "name": "Sharath",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "f2e3d4c5-b6a7-4890-9a0b-1c2d3e4f5a6b"
+        ],
+        "spouses": [],
+        "children": []
+      },
+      {
+        "id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d",
+        "name": "Murali",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "d6c3c2e7-0db4-4c1d-9f4f-8f6c8d0d8d4c"
+        ],
+        "spouses": [],
+        "children": []
+      },
+  
+      {
+        "id": "4c08a9c9-6b36-4f8c-8d07-0d01e2f2b0bf",
+        "name": "Rama Rao",
+        "gender": "male",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [
+          "5d8a0e3f-4e21-45d6-9810-f8238a7ef1c7"
+        ],
+        "spouses": [
+          "6d7e8f90-a1b2-4c3d-8e9f-0a1b2c3d4e5f"
+        ],
+        "children": []
+      },
+      {
+        "id": "6d7e8f90-a1b2-4c3d-8e9f-0a1b2c3d4e5f",
+        "name": "Gowramma",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "notes": "",
+        "parents": [],
+        "spouses": [
+          "4c08a9c9-6b36-4f8c-8d07-0d01e2f2b0bf"
+        ],
+        "children": []
+      }
+    ]
+  }
+  ;
+
         let peopleMap = new Map();
         let currentHighlight = null;
-
-        // Load the JSON data (you'll need to replace this with your actual data)
-        async function loadFamilyData() {
-            // For demo purposes, using inline data. Replace with fetch() for external file
-            const response = await fetch('family-tree.json');
-            familyData = await response.json();
-            initializeApp();
-        }
+        let currentZoom = 1;
 
         function initializeApp() {
             // Create people map for quick lookup
@@ -498,6 +1723,7 @@
             populateGenerationFilter();
             renderTree();
             setupEventListeners();
+            setupZoomControls();
         }
 
         function updateStats() {
@@ -518,7 +1744,7 @@
 
             function getDepth(personId, depth = 0) {
                 const person = peopleMap.get(personId);
-                if (!person.children || person.children.length === 0) {
+                if (!person || !person.children || person.children.length === 0) {
                     return depth;
                 }
                 return Math.max(...person.children.map(childId => getDepth(childId, depth + 1)));
@@ -549,14 +1775,21 @@
             // Find root nodes (people with no parents)
             const roots = familyData.people.filter(p => p.parents.length === 0);
 
+            // Create a wrapper for all roots
+            const rootsContainer = document.createElement('ul');
+
             roots.forEach(root => {
                 const rootElement = createPersonTree(root);
-                treeView.appendChild(rootElement);
+                if (rootElement) {
+                    rootsContainer.appendChild(rootElement);
+                }
             });
+
+            treeView.appendChild(rootsContainer);
         }
 
         function createPersonTree(person, visited = new Set()) {
-            if (visited.has(person.id)) return null;
+            if (!person || visited.has(person.id)) return null;
             visited.add(person.id);
 
             const li = document.createElement('li');
@@ -593,7 +1826,8 @@
 
             const info = document.createElement('div');
             info.className = 'person-info';
-            info.textContent = person.gender.charAt(0).toUpperCase() + person.gender.slice(1);
+            const genderIcon = person.gender === 'male' ? '♂️' : person.gender === 'female' ? '♀️' : '⚪';
+            info.textContent = `${genderIcon} ${person.gender.charAt(0).toUpperCase() + person.gender.slice(1)}`;
 
             card.appendChild(name);
             card.appendChild(info);
@@ -607,7 +1841,8 @@
             const modal = document.getElementById('personModal');
 
             document.getElementById('modalName').textContent = person.name;
-            document.getElementById('modalGender').textContent = person.gender.charAt(0).toUpperCase() + person.gender.slice(1);
+            const genderIcon = person.gender === 'male' ? '♂️' : person.gender === 'female' ? '♀️' : '⚪';
+            document.getElementById('modalGender').textContent = `${genderIcon} ${person.gender.charAt(0).toUpperCase() + person.gender.slice(1)}`;
             document.getElementById('modalBirth').textContent = person.birthDate || 'N/A';
             document.getElementById('modalDeath').textContent = person.deathDate || 'N/A';
             document.getElementById('modalNotes').textContent = person.notes || 'No notes available';
@@ -663,10 +1898,13 @@
         function createRelationLink(person) {
             const link = document.createElement('span');
             link.className = 'relation-link';
-            link.textContent = person.name;
-            link.addEventListener('click', () => {
-                showPersonModal(person);
+            const genderIcon = person.gender === 'male' ? '♂️' : person.gender === 'female' ? '♀️' : '⚪';
+            link.textContent = `${genderIcon} ${person.name}`;
+            link.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('personModal').style.display = 'none';
                 highlightPerson(person.id);
+                setTimeout(() => showPersonModal(person), 500);
             });
             return link;
         }
@@ -681,9 +1919,44 @@
             const card = document.querySelector(`[data-person-id="${personId}"]`);
             if (card) {
                 card.classList.add('highlight');
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Scroll to center the card
+                const container = document.getElementById('treeContainer');
+                const cardRect = card.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                container.scrollTo({
+                    left: container.scrollLeft + cardRect.left - containerRect.left - containerRect.width / 2 + cardRect.width / 2,
+                    top: container.scrollTop + cardRect.top - containerRect.top - containerRect.height / 2 + cardRect.height / 2,
+                    behavior: 'smooth'
+                });
+
                 currentHighlight = card;
             }
+        }
+
+        function setupZoomControls() {
+            const treeView = document.getElementById('treeView');
+            const zoomIn = document.getElementById('zoomIn');
+            const zoomOut = document.getElementById('zoomOut');
+            const zoomReset = document.getElementById('zoomReset');
+
+            zoomIn.addEventListener('click', () => {
+                currentZoom = Math.min(currentZoom + 0.1, 2);
+                treeView.style.transform = `scale(${currentZoom})`;
+                treeView.style.transformOrigin = 'top left';
+            });
+
+            zoomOut.addEventListener('click', () => {
+                currentZoom = Math.max(currentZoom - 0.1, 0.5);
+                treeView.style.transform = `scale(${currentZoom})`;
+                treeView.style.transformOrigin = 'top left';
+            });
+
+            zoomReset.addEventListener('click', () => {
+                currentZoom = 1;
+                treeView.style.transform = 'scale(1)';
+            });
         }
 
         function setupEventListeners() {
@@ -712,31 +1985,61 @@
             // Reset button
             const resetBtn = document.getElementById('resetBtn');
             resetBtn.addEventListener('click', resetFilters);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === '+' || e.key === '=') {
+                        e.preventDefault();
+                        document.getElementById('zoomIn').click();
+                    } else if (e.key === '-') {
+                        e.preventDefault();
+                        document.getElementById('zoomOut').click();
+                    } else if (e.key === '0') {
+                        e.preventDefault();
+                        document.getElementById('zoomReset').click();
+                    }
+                }
+            });
         }
 
         function handleSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const allCards = document.querySelectorAll('.person-card');
 
+            if (searchTerm === '') {
+                resetFilters();
+                return;
+            }
+
+            let foundCount = 0;
+            let firstMatch = null;
+
             allCards.forEach(card => {
                 const name = card.querySelector('.person-name').textContent.toLowerCase();
-                if (searchTerm === '' || name.includes(searchTerm)) {
-                    card.style.display = 'inline-block';
-                    card.parentElement.style.display = 'list-item';
+
+                if (name.includes(searchTerm)) {
+                    card.style.opacity = '1';
+                    card.classList.add('highlight');
+                    foundCount++;
+                    if (!firstMatch) firstMatch = card;
                 } else {
-                    card.style.display = 'none';
+                    card.style.opacity = '0.3';
+                    card.classList.remove('highlight');
                 }
             });
 
-            // Hide empty parent list items
-            document.querySelectorAll('.tree li').forEach(li => {
-                const hasVisibleCard = li.querySelector('.person-card[style*="inline-block"], .person-card:not([style*="display"])');
-                if (!hasVisibleCard && !searchTerm) {
-                    li.style.display = 'list-item';
-                } else if (!hasVisibleCard) {
-                    li.style.display = 'none';
-                }
-            });
+            if (firstMatch) {
+                const container = document.getElementById('treeContainer');
+                const cardRect = firstMatch.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                container.scrollTo({
+                    left: container.scrollLeft + cardRect.left - containerRect.left - containerRect.width / 2 + cardRect.width / 2,
+                    top: container.scrollTop + cardRect.top - containerRect.top - containerRect.height / 2 + cardRect.height / 2,
+                    behavior: 'smooth'
+                });
+            }
         }
 
         function applyFilters() {
@@ -754,7 +2057,12 @@
                     show = false;
                 }
 
-                card.style.display = show ? 'inline-block' : 'none';
+                if (show) {
+                    card.style.display = 'inline-block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.display = 'none';
+                }
             });
         }
 
@@ -766,18 +2074,15 @@
             const allCards = document.querySelectorAll('.person-card');
             allCards.forEach(card => {
                 card.style.display = 'inline-block';
+                card.style.opacity = '1';
                 card.classList.remove('highlight');
-            });
-
-            document.querySelectorAll('.tree li').forEach(li => {
-                li.style.display = 'list-item';
             });
 
             currentHighlight = null;
         }
 
         // Initialize on load
-        loadFamilyData();
+        window.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
 </html>
