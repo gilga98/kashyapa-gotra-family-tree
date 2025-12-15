@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Tree - Kashyapa Gotra</title>
+    <title>Family Tree - Rama Bhatta</title>
     <style>
         * {
             margin: 0;
@@ -41,22 +41,41 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* Search and Filter Controls */
+        /* FLOATING CONTROLS - STICKY */
+        .controls-wrapper {
+            position: sticky;
+            top: 20px;
+            z-index: 500;
+            margin-bottom: 20px;
+        }
+
         .controls {
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
             border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 15px 20px;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 15px;
+            grid-template-columns: 1fr 1fr 1fr auto auto;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .controls.collapsed {
+            grid-template-columns: auto;
+            justify-items: end;
+        }
+
+        .controls.collapsed .search-box,
+        .controls.collapsed .filter-select,
+        .controls.collapsed #resetBtn {
+            display: none;
         }
 
         .search-box, .filter-select {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 10px;
             padding: 12px 15px;
             color: white;
@@ -66,12 +85,13 @@
         }
 
         .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .search-box:focus, .filter-select:focus {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
         }
 
         .filter-select option {
@@ -81,18 +101,45 @@
 
         .btn {
             background: rgba(255, 255, 255, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 10px;
             padding: 12px 20px;
             color: white;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.4);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .toggle-controls-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            display: none;
+        }
+
+        .toggle-controls-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .controls.collapsed .toggle-controls-btn {
+            display: block;
         }
 
         /* Tree Container */
@@ -403,6 +450,7 @@
             font-style: italic;
         }
 
+        /* FLOATING STATS */
         .stats {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -434,6 +482,11 @@
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .controls {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .controls:not(.collapsed) {
                 grid-template-columns: 1fr;
             }
 
@@ -472,6 +525,18 @@
             .tree li {
                 min-width: 160px;
             }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
         }
 
         .hidden {
@@ -498,22 +563,28 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Zoom controls */
+        /* Zoom controls - FLOATING */
         .zoom-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
             display: flex;
             gap: 10px;
-            z-index: 100;
+            z-index: 600;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
 
         .zoom-btn {
             background: rgba(255, 255, 255, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             color: white;
             font-size: 20px;
             font-weight: bold;
@@ -525,8 +596,13 @@
         }
 
         .zoom-btn:hover {
-            background: rgba(255, 255, 255, 0.35);
-            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .zoom-btn:active {
+            transform: scale(1.05);
         }
 
         /* Loading */
@@ -560,6 +636,35 @@
             border-radius: 10px;
             margin: 20px 0;
         }
+
+        /* Tooltip for collapsed state */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -591,17 +696,21 @@
             </div>
         </div>
 
-        <div class="controls">
-            <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search by name...">
-            <select class="filter-select" id="genderFilter">
-                <option value="all">All Genders</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-            </select>
-            <select class="filter-select" id="generationFilter">
-                <option value="all">All Generations</option>
-            </select>
-            <button class="btn" id="resetBtn">Reset</button>
+        <!-- FLOATING STICKY CONTROLS -->
+        <div class="controls-wrapper">
+            <div class="controls" id="controlsPanel">
+                <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search by name...">
+                <select class="filter-select" id="genderFilter">
+                    <option value="all">All Genders</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <select class="filter-select" id="generationFilter">
+                    <option value="all">All Generations</option>
+                </select>
+                <button class="btn" id="resetBtn">Reset</button>
+                <button class="toggle-controls-btn" id="toggleControls" title="Show Controls">☰</button>
+            </div>
         </div>
 
         <div id="loadingArea" class="loading">
@@ -612,12 +721,20 @@
         <div id="errorArea" class="hidden"></div>
 
         <div class="tree-container hidden" id="treeContainer">
-            <div class="zoom-controls">
-                <button class="zoom-btn" id="zoomIn" title="Zoom In">+</button>
-                <button class="zoom-btn" id="zoomOut" title="Zoom Out">−</button>
-                <button class="zoom-btn" id="zoomReset" title="Reset Zoom">⟲</button>
-            </div>
             <div id="treeView" class="tree"></div>
+        </div>
+    </div>
+
+    <!-- FLOATING ZOOM CONTROLS -->
+    <div class="zoom-controls">
+        <div class="tooltip">
+            <button class="zoom-btn" id="zoomIn" title="Zoom In">+</button>
+        </div>
+        <div class="tooltip">
+            <button class="zoom-btn" id="zoomOut" title="Zoom Out">−</button>
+        </div>
+        <div class="tooltip">
+            <button class="zoom-btn" id="zoomReset" title="Reset Zoom">⟲</button>
         </div>
     </div>
 
@@ -660,7 +777,8 @@
         let peopleMap = new Map();
         let currentHighlight = null;
         let currentZoom = 1;
-        let processedPeople = new Set(); // Track who's been shown as part of a couple
+        let processedPeople = new Set();
+        let controlsCollapsed = false;
 
         // Load data from external JSON file
         async function loadFamilyData() {
@@ -671,7 +789,6 @@
                 }
                 familyData = await response.json();
 
-                // Hide loading, show tree
                 document.getElementById('loadingArea').classList.add('hidden');
                 document.getElementById('treeContainer').classList.remove('hidden');
 
@@ -698,7 +815,6 @@
         }
 
         function initializeApp() {
-            // Create people map for quick lookup
             familyData.people.forEach(person => {
                 peopleMap.set(person.id, person);
             });
@@ -708,6 +824,25 @@
             renderTree();
             setupEventListeners();
             setupZoomControls();
+            setupControlsToggle();
+        }
+
+        function setupControlsToggle() {
+            const toggleBtn = document.getElementById('toggleControls');
+            const controlsPanel = document.getElementById('controlsPanel');
+
+            toggleBtn.addEventListener('click', () => {
+                controlsCollapsed = !controlsCollapsed;
+                if (controlsCollapsed) {
+                    controlsPanel.classList.add('collapsed');
+                    toggleBtn.textContent = '☰';
+                    toggleBtn.title = 'Show Controls';
+                } else {
+                    controlsPanel.classList.remove('collapsed');
+                    toggleBtn.textContent = '✕';
+                    toggleBtn.title = 'Hide Controls';
+                }
+            });
         }
 
         function updateStats() {
@@ -776,10 +911,7 @@
             treeView.innerHTML = '';
             processedPeople.clear();
 
-            // Find root nodes (people with no parents who haven't been shown as spouses)
             const roots = familyData.people.filter(p => p.parents.length === 0);
-
-            // Group roots into couples and singles
             const rootsContainer = document.createElement('ul');
 
             roots.forEach(root => {
@@ -798,29 +930,23 @@
             if (!person || visited.has(person.id)) return null;
 
             const li = document.createElement('li');
-
-            // Check if this person has a spouse
             const hasSpouse = person.spouses && person.spouses.length > 0;
 
             if (hasSpouse && !processedPeople.has(person.id)) {
-                // Create a couple card
                 const coupleCard = createCoupleCard(person);
                 li.appendChild(coupleCard);
             } else if (!processedPeople.has(person.id)) {
-                // Create single person card
                 const card = createPersonCard(person);
                 li.appendChild(card);
                 processedPeople.add(person.id);
             } else {
-                return null; // Already shown as part of a couple
+                return null;
             }
 
             visited.add(person.id);
 
-            // Get children (from the primary person or their spouse)
             let childrenIds = [...person.children];
 
-            // Add spouse's children if not already included
             if (person.spouses && person.spouses.length > 0) {
                 person.spouses.forEach(spouseId => {
                     const spouse = peopleMap.get(spouseId);
@@ -857,16 +983,13 @@
             card.className = 'couple-card';
             card.dataset.coupleId = person.id;
 
-            // Add primary person
             const person1Div = createCouplePersonDiv(person);
             card.appendChild(person1Div);
 
-            // Add spouse(s)
             if (person.spouses && person.spouses.length > 0) {
                 person.spouses.forEach((spouseId, index) => {
                     const spouse = peopleMap.get(spouseId);
                     if (spouse) {
-                        // Add divider
                         if (index === 0) {
                             const divider = document.createElement('div');
                             divider.className = 'couple-divider';
@@ -919,7 +1042,6 @@
 
             card.appendChild(name);
             card.appendChild(info);
-
             card.addEventListener('click', () => showPersonModal(person));
 
             return card;
@@ -935,7 +1057,6 @@
             document.getElementById('modalDeath').textContent = person.deathDate || 'N/A';
             document.getElementById('modalNotes').textContent = person.notes || 'No notes available';
 
-            // Parents
             const parentsDiv = document.getElementById('modalParents');
             parentsDiv.innerHTML = '';
             if (person.parents.length > 0) {
@@ -950,7 +1071,6 @@
                 parentsDiv.innerHTML = '<span class="no-relation">No parent information</span>';
             }
 
-            // Spouses
             const spousesDiv = document.getElementById('modalSpouses');
             spousesDiv.innerHTML = '';
             if (person.spouses.length > 0) {
@@ -965,7 +1085,6 @@
                 spousesDiv.innerHTML = '<span class="no-relation">No spouse information</span>';
             }
 
-            // Children
             const childrenDiv = document.getElementById('modalChildren');
             childrenDiv.innerHTML = '';
             if (person.children.length > 0) {
@@ -998,15 +1117,12 @@
         }
 
         function highlightPerson(personId) {
-            // Remove previous highlight
             if (currentHighlight) {
                 currentHighlight.classList.remove('highlight');
             }
 
-            // Find the person in either a person-card or couple-person
             let card = document.querySelector(`[data-person-id="${personId}"]`);
 
-            // If it's a couple-person, highlight the parent couple-card
             if (card && card.classList.contains('couple-person')) {
                 card = card.closest('.couple-card');
             }
@@ -1014,7 +1130,6 @@
             if (card) {
                 card.classList.add('highlight');
 
-                // Scroll to center the card
                 const container = document.getElementById('treeContainer');
                 const cardRect = card.getBoundingClientRect();
                 const containerRect = container.getBoundingClientRect();
@@ -1054,7 +1169,6 @@
         }
 
         function setupEventListeners() {
-            // Close modal
             const modal = document.getElementById('personModal');
             const closeBtn = document.querySelector('.close');
             closeBtn.onclick = () => modal.style.display = 'none';
@@ -1064,23 +1178,18 @@
                 }
             };
 
-            // Search
             const searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('input', handleSearch);
 
-            // Gender filter
             const genderFilter = document.getElementById('genderFilter');
             genderFilter.addEventListener('change', applyFilters);
 
-            // Generation filter
             const generationFilter = document.getElementById('generationFilter');
             generationFilter.addEventListener('change', applyFilters);
 
-            // Reset button
             const resetBtn = document.getElementById('resetBtn');
             resetBtn.addEventListener('click', resetFilters);
 
-            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 if (e.ctrlKey || e.metaKey) {
                     if (e.key === '+' || e.key === '=') {
@@ -1116,7 +1225,6 @@
                 if (person && person.name.toLowerCase().includes(searchTerm)) {
                     div.style.opacity = '1';
 
-                    // Highlight the parent card (couple or person)
                     const parentCard = div.closest('.couple-card, .person-card');
                     if (parentCard) {
                         parentCard.classList.add('highlight');
@@ -1156,7 +1264,6 @@
 
                 let show = true;
 
-                // Gender filter
                 if (genderFilter !== 'all' && person.gender !== genderFilter) {
                     show = false;
                 }
@@ -1190,7 +1297,6 @@
             currentHighlight = null;
         }
 
-        // Initialize on load
         window.addEventListener('DOMContentLoaded', loadFamilyData);
     </script>
 </body>
