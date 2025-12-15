@@ -1170,7 +1170,7 @@
                 loadingEl.textContent = 'Loading family-tree.json...';
                 
                 // Fetch the external JSON file
-                constresponse = await fetch('./family-tree.json');
+                const response = await fetch('./family-tree.json');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
